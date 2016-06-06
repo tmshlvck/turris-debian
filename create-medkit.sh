@@ -23,8 +23,8 @@ KERNELREPO="https://github.com/tmshlvck/omnia-linux.git"
 KERNELBRANCH="omnia"
 SWCONFIGREPO="https://github.com/jekader/swconfig.git"
 
-
-
+SCHNAPPSREPO="https://gitlab.labs.nic.cz/turris/misc.git"
+SCHNAPPSBIN="schnapps/schnapps"
 
 
 
@@ -76,10 +76,13 @@ iface br0 inet static
 
 auto eth1
 iface eth1 inet dhcp
+	pre-up /usr/local/sbin/sfpswitch.py --oneshot
 EOF
 
 cat >$ROOTDIR/etc/rc.local <<EOF
 #!/bin/sh -e
+
+/usr/local/sbin/sfpswitch.py
 
 swconfig dev switch0 set reset
 swconfig dev switch0 vlan 1 set ports "0 1 2 3 5"
@@ -117,7 +120,7 @@ cd $BUILDROOT
 # run postinst script in QEMU
 cat >$ROOTDIR/root/postinst.sh <<EOF
 apt-get -y update
-apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev
+apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python
 cd /root
 git clone $SWCONFIGREPO swconfig
 cd swconfig
@@ -135,6 +138,20 @@ ENDSCRIPT
 
 cd $BUILDROOT
 rm -rf linux
+
+# copy schnapps script
+cd $BUILDROOT
+git clone $SCHNAPPSREPO misc
+sudo cp misc/$SCHNAPPSBIN $ROOTDIR/usr/local/sbin/schnapps
+sudo chown root:root $ROOTDIR/usr/local/sbin/schnapps
+sudo chmod a+x $ROOTDIR/usr/local/sbin/schnapps
+rm -rf misc
+
+# copy sfpswitch.py
+sudo cp files/sfpswitch.py $ROOTDIR/usr/local/sbin/sfpswitch.py
+sudo chown root:root $ROOTDIR/usr/local/sbin/sfpswitch.py
+
+# create package
 cd $ROOTDIR
 touch ../omnia-medkit.tar.gz
 sudo tar zcf ../omnia-medkit.tar.gz *
