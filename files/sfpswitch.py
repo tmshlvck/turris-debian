@@ -3,6 +3,7 @@
 import sys
 import os
 import select
+import time
 
 sfpdet_pin = 508
 sfpdis_pin = 505
@@ -10,8 +11,9 @@ sfpdis_pin = 505
 gpio_export = '/sys/class/gpio/export'
 sfp_select = '/sys/devices/platform/soc/soc:internal-regs/f1034000.ethernet/net/eth1/phy_select'
 map = { 1: 'phy-def', 0: 'phy-sfp' }
-#cmd_net_res = '/etc/init.d/network restart' # OpenWRT
+#cmd_net_res = 'ip link set down dev eth1; /etc/init.d/network restart' # OpenWRT
 cmd_net_res = 'ifdown eth1; ifup eth1' # Debian
+cmd_safety_sleep = 2
 
 def write_once(path, value):
 	with open(path, 'w') as f:
@@ -48,6 +50,7 @@ def do_switch(state, restart_net=True):
 	print 'Switching state to %s' % map[state]
 	write_once(sfp_select, map[state])
 	if restart_net:
+		time.sleep(cmd_safety_sleep)
 		os.system(cmd_net_res)
 
 
