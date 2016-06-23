@@ -19,8 +19,6 @@ PASSWORD="turris"
 BUILDROOT=`pwd`
 ROOTDIR="$BUILDROOT/root"
 
-KERNELREPO="https://github.com/tmshlvck/omnia-linux.git"
-KERNELBRANCH="omnia"
 SWCONFIGREPO="https://github.com/jekader/swconfig.git"
 
 SCHNAPPSREPO="https://gitlab.labs.nic.cz/turris/misc.git"
@@ -79,6 +77,10 @@ iface eth1 inet dhcp
 	pre-up /usr/local/sbin/sfpswitch.py --oneshot
 EOF
 
+cat >$ROOTDIR/etc/apt/sources.list <<EOF
+deb $MIRROR jessie main
+EOF
+
 cat >$ROOTDIR/etc/rc.local <<EOF
 #!/bin/sh -e
 
@@ -96,31 +98,35 @@ EOF
 sed -ir 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
 ENDSCRIPT
 
+# build kernel
 cd $BUILDROOT
-git clone $KERNELREPO linux
-cd linux
-git checkout $KERNELBRANCH
-export ARCH=arm; export CROSS_COMPILE=/usr/bin/arm-linux-gnueabihf-
-make omnia_defconfig
-make -j5
-make modules -j5
+./create-kernel.sh
+cd $BUILDROOT
+KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_"`
+FIP=`ls linux-firmware-image-*_armhf.deb`
+HIP=`ls linux-headers-*_armhf.deb`
+sudo cp $KIP $FIP $HIP $ROOTDIR
 
+# copy omnia-gen-bootlink.sh
+sudo cp files/omnia-gen-bootlink.sh $ROOTDIR/etc/kernel/postinst.d/
+sudo chown root:root /etc/kernel/postinst.d/omnia-gen-bootlink.sh
+
+# install packages and run postinst
 sudo bash <<ENDSCRIPT
-export ARCH=arm; export CROSS_COMPILE=/usr/bin/arm-linux-gnueabihf-
-make INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH=$ROOTDIR modules_install
-chown -R root:root $ROOTDIR/lib/modules
-cp arch/arm/boot/zImage $ROOTDIR/boot/zImage; chown root:root $ROOTDIR/boot/zImage
-cp arch/arm/boot/dts/armada-385-turris-omnia.dtb $ROOTDIR/boot/dtb; chown root:root $ROOTDIR/boot/dtb
+chroot $ROOTDIR dpkg -i $KIP $FIP $HIP
+rm $ROOTDIR/$KIP $ROOTDIR/$FIP $ROOTDIR/$HIP
+
 mkdir -p $ROOTDIR/usr/include/linux
-cp include/uapi/linux/switch.h $ROOTDIR/usr/include/linux
+cp $BUILDROOT/linux/include/uapi/linux/switch.h $ROOTDIR/usr/include/linux
 chown root:root $ROOTDIR/usr/include/linux/switch.h
 
 cd $BUILDROOT
 
 # run postinst script in QEMU
 cat >$ROOTDIR/root/postinst.sh <<EOF
+/etc/kernel/postinst.d/omnia-gen-bootlink.sh
 apt-get -y update
-apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python
+apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh
 cd /root
 git clone $SWCONFIGREPO swconfig
 cd swconfig
