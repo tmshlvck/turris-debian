@@ -23,3 +23,8 @@ Root password is "turris" and by default a DHCP client runs on WAN
 (eth1) interface and 192.168.1.1/24 address is set on LAN ports (all
 ports are connected to the same VLAN in the switch chip).
 
+Latest compiled image is here:
+http://aule.elfove.cz/~brill/omnia-debian/
+
+But... Create your own image. It is easy!
+
