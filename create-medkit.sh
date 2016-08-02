@@ -95,6 +95,10 @@ swconfig dev switch0 set apply 1
 exit 0
 EOF
 
+cat >$ROOTDIR/etc/fstab <<EOF
+/dev/mmcblk0p1 / btrfs rw,relatime,ssd,subvol=@			0	0
+EOF
+
 sed -ir 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
 ENDSCRIPT
 
@@ -126,7 +130,7 @@ cd $BUILDROOT
 cat >$ROOTDIR/root/postinst.sh <<EOF
 /etc/kernel/postinst.d/omnia-gen-bootlink.sh
 apt-get -y update
-apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils
+apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools
 cd /root
 git clone $SWCONFIGREPO swconfig
 cd swconfig
