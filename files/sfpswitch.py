@@ -1,9 +1,14 @@
 #!/usr/bin/python
+#
+# sfpswitch daemon for Turris Omnia
+# Copyright (c) 2016 CZ.NIC, z.s.p.o.
+
 
 import sys
 import os
 import select
 import time
+import subprocess
 
 debug = 1
 
@@ -13,12 +18,11 @@ sfplos_pin = 507
 sfpflt_pin = 504
 
 sfp_select = '/sys/devices/platform/soc/soc:internal-regs/f1034000.ethernet/net/eth1/phy_select'
-modemap = { 1: 'phy-def', 0: 'phy-sfp' }
 #cmd_net_res = 'ip link set down dev eth1; /etc/init.d/network restart' # OpenWRT
 cmd_net_res = 'ifdown eth1; ifup eth1' # Debian
 cmd_safety_sleep = 2
 wan_led = '/sys/devices/platform/soc/soc:internal-regs/f1011000.i2c/i2c-0/i2c-1/1-002b/leds/omnia-led:wan'
-
+cmd_i2c_read = ['/usr/sbin/i2cget', '-y', '5', '0x50', '0x6', 'b'] # bus i2c-5, chipaddr 0x50, byte 0x6, byte mode
 
 
 def d(message):
@@ -92,18 +96,37 @@ class LED:
 
 
 
+def decide_sfpmode(sfpdet_val):
+	if sfpdet_val == 1: # phy-def, autonomous blink
+		return 'phy-def'
+	elif sfpdet_val == 0: # phy-sfp or phy-sgmii-sfp, user blink
+		p = subprocess.Popen(cmd_i2c_read, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		out, err = p.communicate()
+		d("I2C read: %s" % (out + err))
+		try:
+			sfpt = int(out, 0)
+			if sfpt & 0x08:
+				return 'phy-sgmii-sfp'
+			else:
+				return 'phy-sfp'
+		except:
+			return 'phy-sfp'
+	else:
+		raise Exception("Can not happen.")
 
-def set_nic_mode(mode, restart_net=True):
-	d('Switching mode to %s' % modemap[mode])
+
+def set_nic_mode(sfpdet_val, restart_net=True):
+	mode = decide_sfpmode(sfpdet_val)
+	d('Switching mode to %s.' % mode)
 
 	with open(sfp_select, 'r') as f:
 		c = f.read()
-		if c == modemap[mode]:
-			d("Current mode is %s . Noop." % c)
+		if c == mode:
+			d("Current mode is already %s. Noop." % c)
 			return
 		
 	with open(sfp_select, 'w') as f:
-		f.write(modemap[mode])
+		f.write(mode)
 
 	d("Switch success.")
 
@@ -117,19 +140,19 @@ def led_change(led, sfplos, sfpflt):
 	led.set_brightness(False if sfplos.read() or sfpflt.read() else True)
 
 
-def led_init(mode, led, sfplos, sfpflt):
-	if mode == 1: # phy-def, autonomous blink
+def led_init(sfpdet_val, led, sfplos, sfpflt):
+	if sfpdet_val == 1: # phy-def, autonomous blink
 		led.set_brightness(False)
-	led.set_autonomous(mode)
-	if mode == 0: # phy-sfp, user blink
+	led.set_autonomous(sfpdet_val)
+	if sfpdet_val == 0: # phy-sfp or phy-sgmii-sfp, user blink
 		led_change(led, sfplos, sfpflt)
 
 
 
 def mode_change(sfpdet, led, sfplos, sfpflt, restart_net=True):
-	m = sfpdet.read() # 0: phy-sfp, user blink; 1: phy-def, autonomous blink
-	set_nic_mode(m, restart_net)
-	led_init(m, led, sfplos, sfpflt)
+	sd = sfpdet.read() # 0: phy-sfp, user blink; 1: phy-def, autonomous blink
+	set_nic_mode(sd, restart_net)
+	led_init(sd, led, sfplos, sfpflt)
 
 
 

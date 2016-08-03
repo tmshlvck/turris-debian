@@ -130,7 +130,7 @@ cd $BUILDROOT
 cat >$ROOTDIR/root/postinst.sh <<EOF
 /etc/kernel/postinst.d/omnia-gen-bootlink.sh
 apt-get -y update
-apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools
+apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools
 cd /root
 git clone $SWCONFIGREPO swconfig
 cd swconfig
