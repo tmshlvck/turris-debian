@@ -111,9 +111,9 @@ FIP=`ls linux-firmware-image-*_armhf.deb`
 HIP=`ls linux-headers-*_armhf.deb`
 sudo cp $KIP $FIP $HIP $ROOTDIR
 
-# copy omnia-gen-bootlink.sh
-sudo cp files/omnia-gen-bootlink.sh $ROOTDIR/etc/kernel/postinst.d/
-sudo chown root:root /etc/kernel/postinst.d/omnia-gen-bootlink.sh
+# copy omnia-gen-bootlink
+sudo cp files/omnia-gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
+sudo chown root:root /etc/kernel/postinst.d/omnia-gen-bootlink
 
 # install packages and run postinst
 sudo bash <<ENDSCRIPT
@@ -128,7 +128,7 @@ cd $BUILDROOT
 
 # run postinst script in QEMU
 cat >$ROOTDIR/root/postinst.sh <<EOF
-/etc/kernel/postinst.d/omnia-gen-bootlink.sh
+/etc/kernel/postinst.d/omnia-gen-bootlink
 apt-get -y update
 apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools
 cd /root
