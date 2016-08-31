@@ -107,9 +107,8 @@ cd $BUILDROOT
 ./create-kernel.sh
 cd $BUILDROOT
 KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_"`
-FIP=`ls linux-firmware-image-*_armhf.deb`
 HIP=`ls linux-headers-*_armhf.deb`
-sudo cp $KIP $FIP $HIP $ROOTDIR
+sudo cp $KIP $HIP $ROOTDIR
 
 # copy omnia-gen-bootlink
 sudo cp files/omnia-gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
@@ -117,8 +116,8 @@ sudo chown root:root /etc/kernel/postinst.d/omnia-gen-bootlink
 
 # install packages and run postinst
 sudo bash <<ENDSCRIPT
-chroot $ROOTDIR dpkg -i $KIP $FIP $HIP
-rm $ROOTDIR/$KIP $ROOTDIR/$FIP $ROOTDIR/$HIP
+chroot $ROOTDIR dpkg -i $KIP $HIP
+rm $ROOTDIR/$KIP $ROOTDIR/$HIP
 
 mkdir -p $ROOTDIR/usr/include/linux
 cp $BUILDROOT/linux/include/uapi/linux/switch.h $ROOTDIR/usr/include/linux
