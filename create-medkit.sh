@@ -22,7 +22,7 @@ ROOTDIR="$BUILDROOT/root"
 SWCONFIGREPO="https://github.com/jekader/swconfig.git"
 
 SCHNAPPSREPO="https://gitlab.labs.nic.cz/turris/misc.git"
-SCHNAPPSBIN="schnapps/schnapps"
+SCHNAPPSBIN="schnapps/schnapps.sh"
 
 
 
