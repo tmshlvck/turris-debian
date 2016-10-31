@@ -136,6 +136,7 @@ cd swconfig
 make
 cp swconfig /usr/local/sbin/
 rm -rf /root/swconfig
+sed -ir 's/^PermitRootLogin without-password$/PermitRootLogin yes/' /etc/ssh/sshd_config
 EOF
 
 chroot $ROOTDIR /bin/bash /root/postinst.sh
