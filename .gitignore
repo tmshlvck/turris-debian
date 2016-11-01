@@ -1,0 +1,7 @@
+# C extensions
+*.so
+
+# Packages
+*.deb
+*.tar.gz
+
