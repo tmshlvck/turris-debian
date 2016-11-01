@@ -5,7 +5,7 @@
 # prerequisities - Debian packages:
 # git
 # gcc-arm-linux-gnueabihf
-# devscrips
+# devscripts
 # kernel-package
 #
 

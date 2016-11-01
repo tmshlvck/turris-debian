@@ -8,6 +8,8 @@
 # qemu-user-static
 # git
 # gcc-arm-linux-gnueabihf
+# devscripts
+# kernel-package
 #
 # sudo root privileges
 #
