@@ -15,6 +15,7 @@ import time
 import fcntl
 import syslog
 import getopt
+import subprocess
 
 
 def l(message):
@@ -191,7 +192,8 @@ class Omnia:
 	sfpflt_pin = 504
 
 	sfp_select = '/sys/devices/platform/soc/soc:internal-regs/f1034000.ethernet/net/eth1/phy_select'
-	cmd_net_res = 'ip link set down dev eth1; ip link set up dev eth1'
+	bin_ip = '/sbin/ip'
+	sfp_iface = 'eth1'
 	cmd_init_time = 1
 	wan_led = '/sys/devices/platform/soc/soc:internal-regs/f1011000.i2c/i2c-0/i2c-1/1-002b/leds/omnia-led:wan'
 
@@ -213,25 +215,32 @@ class Omnia:
 			c = f.read()
 			if c == mode:
 				d("Current mode is already %s. Noop." % c)
-				return
+				return False
 		
 		with open(self.sfp_select, 'w') as f:
 			f.write(mode)
 
 		d("Switched successfully to mode %s." % mode)
+		return True
 
 	def restart_net(self):
-		d("Safety sleep before net restart for %d second(s)." % self.cmd_init_time)
-		time.sleep(self.cmd_init_time)
-		d("Restarting net with command %s" % self.cmd_net_res)
-		os.system(self.cmd_net_res)
-		d("Net restart finished.")
+		d("Testing whether the interface %s is up..." % self.sfp_iface)
+		p = subprocess.Popen([self.bin_ip, 'link', 'show', 'dev', self.sfp_iface],
+					stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		out, err = p.communicate()
+		if ',UP,' in out:
+			d("Interface %s is up. Sleeping for %d second(s)." % (self.sfp_iface,
+				self.cmd_init_time))
+			time.sleep(self.cmd_init_time)
 
-#		import subprocess
-#		p = subprocess.Popen(['ls', '-a'], stdout=subprocess.PIPE, 
-#						stderr=subprocess.PIPE)
-#		out, err = p.communicate()
-#		print out
+			l("Shutting down interface %s" % self.sfp_iface)
+			subprocess.call([self.bin_ip, 'link', 'set', 'down', 'dev', self.sfp_iface])
+			l("Bringing up interface %s" % self.sfp_iface)
+			subprocess.call([self.bin_ip, 'link', 'set', 'up', 'dev', self.sfp_iface])
+		else:
+			l("Interface is down. Noop." % self.sfp_iface)
+
+		d("Net restart finished.")
 
 
 	def led_light_handler(self):
@@ -269,8 +278,15 @@ class Omnia:
 			return SFP(self.sfp_i2c_bus).decide_sfpmode()
 
 	def nic_mode_handler(self):
-		self.set_nic_mode(self.decide_nic_mode())
+		# set the NIC mode in /sys
+		net_res_flag = self.set_nic_mode(self.decide_nic_mode())
+		# set proper LED mode and turn on/off the LED
 		self.led_mode_handler()
+		# restart interface in Linux for changes in /sys to be applied
+		if net_res_flag:
+			o.restart_net()
+		else:
+			d("Mode not changed. Iface restart not needed.")
 
 
 
@@ -300,7 +316,6 @@ def run():
 	def fdet_changed():
 		d("sfp det change detected: %d" % o.sfpdet.read())
 		o.nic_mode_handler()
-		o.restart_net()
 
 	def flos_changed():
 		d("sfp los change detected: %d " % o.sfplos.read())
