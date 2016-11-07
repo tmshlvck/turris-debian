@@ -3,6 +3,14 @@
 # sfpswitch daemon for Turris Omnia
 # Copyright (c) 2016 CZ.NIC, z.s.p.o.
 
+force_mode = None
+# possible force_mode values are:
+# None : autodetection
+# 'phy-def' - metallic PHY
+# 'phy-sfp' - 1000BASE-X
+# 'phy-sfp-noneg' - 1000BASE-X, no up/down in-band signalling (force up)
+# 'phy-sfp-sgmii' - SGMII
+
 lockfile = '/var/run/sfpswitch.lock'
 debug = False
 daemon = False
@@ -264,6 +272,10 @@ class Omnia:
 			self.led_light_handler()
 
 	def decide_nic_mode(self):
+		global force_mode
+		if force_mode:
+			return force_mode
+
 		sfpdet_val = self.sfpdet.read()
 
 		if sfpdet_val == 1: # phy-def, autonomous blink
