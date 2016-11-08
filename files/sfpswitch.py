@@ -246,7 +246,7 @@ class Omnia:
 			l("Bringing up interface %s" % self.sfp_iface)
 			subprocess.call([self.bin_ip, 'link', 'set', 'up', 'dev', self.sfp_iface])
 		else:
-			l("Interface is down. Noop." % self.sfp_iface)
+			l("Interface %s is down. Noop." % self.sfp_iface)
 
 		d("Net restart finished.")
 
@@ -296,7 +296,7 @@ class Omnia:
 		self.led_mode_handler()
 		# restart interface in Linux for changes in /sys to be applied
 		if net_res_flag:
-			o.restart_net()
+			self.restart_net()
 		else:
 			d("Mode not changed. Iface restart not needed.")
 
