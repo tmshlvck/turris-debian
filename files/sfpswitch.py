@@ -200,7 +200,7 @@ class Omnia:
 	sfpflt_pin = 504
 
 	sfp_select = '/sys/devices/platform/soc/soc:internal-regs/f1034000.ethernet/net/eth1/phy_select'
-	bin_ip = '/sbin/ip'
+	bin_ip = 'ip'
 	sfp_iface = 'eth1'
 	cmd_init_time = 1
 	wan_led = '/sys/devices/platform/soc/soc:internal-regs/f1011000.i2c/i2c-0/i2c-1/1-002b/leds/omnia-led:wan'
@@ -236,7 +236,7 @@ class Omnia:
 		p = subprocess.Popen([self.bin_ip, 'link', 'show', 'dev', self.sfp_iface],
 					stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		out, err = p.communicate()
-		if ',UP,' in out:
+		if ',UP' in out or '<UP' in out:
 			d("Interface %s is up. Sleeping for %d second(s)." % (self.sfp_iface,
 				self.cmd_init_time))
 			time.sleep(self.cmd_init_time)
