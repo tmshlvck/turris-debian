@@ -198,6 +198,7 @@ class Omnia:
 	sfpdis_pin = 505
 	sfplos_pin = 507
 	sfpflt_pin = 504
+	sfprs0_pin = 506
 
 	sfp_select = '/sys/devices/platform/soc/soc:internal-regs/f1034000.ethernet/net/eth1/phy_select'
 	bin_ip = 'ip'
