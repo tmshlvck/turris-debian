@@ -54,33 +54,13 @@ DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
 echo -e "${PASSWORD}\n${PASSWORD}" | chroot $ROOTDIR passwd root
 
 echo "$HOSTNAME" >$ROOTDIR/etc/hostname
-cat >$ROOTDIR/etc/network/interfaces <<EOF
-# interfaces(5) file used by ifup(8) and ifdown(8)
-# Include files from /etc/network/interfaces.d:
-source-directory /etc/network/interfaces.d
 
-auto lo
-iface lo inet loopback
-
-auto eth0
-iface eth0 inet manual
-
-auto eth2
-iface eth2 inet manual
-
-auto br0
-iface br0 inet static
-        bridge_ports wlan0 eth0 eth2
-        address 192.168.1.1
-        netmask 255.255.255.0
-
-auto eth1
-iface eth1 inet dhcp
-	pre-up /usr/local/sbin/sfpswitch.py --oneshot
-EOF
+cp files/interfaces $ROOTDIR/etc/network/interfaces
+chown root:root $ROOTDIR/etc/network/interfaces
 
 cat >$ROOTDIR/etc/apt/sources.list <<EOF
 deb $MIRROR jessie main
+deb http://security.debian.org/ jessie/updates main
 EOF
 
 cat >$ROOTDIR/etc/rc.local <<EOF
@@ -88,14 +68,11 @@ cat >$ROOTDIR/etc/rc.local <<EOF
 
 /usr/local/sbin/sfpswitch.py
 
-swconfig dev switch0 set reset
-swconfig dev switch0 vlan 1 set ports "0 1 2 3 5"
-swconfig dev switch0 vlan 2 set ports "4 6"
-swconfig dev switch0 set enable_vlan 1
-swconfig dev switch0 set apply 1
-
 exit 0
 EOF
+
+cp files/swconfig.sh $ROOTDIR/etc/swconfig.sh
+chown root:root $ROOTDIR/etc/swconfig.sh
 
 cat >$ROOTDIR/etc/fstab <<EOF
 /dev/mmcblk0p1 / btrfs rw,relatime,ssd,subvol=@			0	0
@@ -167,5 +144,6 @@ sudo chown root:root $ROOTDIR/usr/local/sbin/sfpswitch.py
 cd $ROOTDIR
 touch ../omnia-medkit.tar.gz
 sudo tar zcf ../omnia-medkit.tar.gz *
+md5sum ../omnia-medkit.tar.gz >../omnia-medkit.tar.gz.md5
 cd $BUILDROOT
 sudo rm -rf $ROOTDIR
