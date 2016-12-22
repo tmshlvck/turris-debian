@@ -11,7 +11,7 @@
 # devscripts
 # kernel-package
 #
-# sudo root privileges
+# $SUDO || root privileges
 #
 
 MIRROR="http://ucho.ignum.cz/debian/"
@@ -28,13 +28,17 @@ SCHNAPPSBIN="schnapps/schnapps.sh"
 
 
 
+SUDO='/usr/bin/sudo'
+if [ "$(id -u)" != "0" ]; then
+	SUDO=''
+fi
 
 if [ -z "${ROOTDIR}" ]; then
 	echo "Wrong ROOTDIR: ${ROOTDIR}"
 	exit -1
 fi
 
-sudo bash <<ENDSCRIPT
+$SUDO bash <<ENDSCRIPT
 rm -rf $ROOTDIR
 mkdir $ROOTDIR
 
@@ -87,14 +91,14 @@ cd $BUILDROOT
 cd $BUILDROOT
 KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_"`
 HIP=`ls linux-headers-*_armhf.deb`
-sudo cp $KIP $HIP $ROOTDIR
+$SUDO cp $KIP $HIP $ROOTDIR
 
 # copy omnia-gen-bootlink
-sudo cp files/omnia-gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
-sudo chown root:root /etc/kernel/postinst.d/omnia-gen-bootlink
+$SUDO cp files/omnia-gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
+$SUDO chown root:root /etc/kernel/postinst.d/omnia-gen-bootlink
 
 # install packages and run postinst
-sudo bash <<ENDSCRIPT
+$SUDO bash <<ENDSCRIPT
 chroot $ROOTDIR dpkg -i $KIP $HIP
 rm $ROOTDIR/$KIP $ROOTDIR/$HIP
 
@@ -131,19 +135,19 @@ rm -rf linux
 # copy schnapps script
 cd $BUILDROOT
 git clone $SCHNAPPSREPO misc
-sudo cp misc/$SCHNAPPSBIN $ROOTDIR/usr/local/sbin/schnapps
-sudo chown root:root $ROOTDIR/usr/local/sbin/schnapps
-sudo chmod a+x $ROOTDIR/usr/local/sbin/schnapps
+$SUDO cp misc/$SCHNAPPSBIN $ROOTDIR/usr/local/sbin/schnapps
+$SUDO chown root:root $ROOTDIR/usr/local/sbin/schnapps
+$SUDO chmod a+x $ROOTDIR/usr/local/sbin/schnapps
 rm -rf misc
 
 # copy sfpswitch.py
-sudo cp files/sfpswitch.py $ROOTDIR/usr/local/sbin/sfpswitch.py
-sudo chown root:root $ROOTDIR/usr/local/sbin/sfpswitch.py
+$SUDO cp files/sfpswitch.py $ROOTDIR/usr/local/sbin/sfpswitch.py
+$SUDO chown root:root $ROOTDIR/usr/local/sbin/sfpswitch.py
 
 # create package
 cd $ROOTDIR
 touch ../omnia-medkit.tar.gz
-sudo tar zcf ../omnia-medkit.tar.gz *
+$SUDO tar zcf ../omnia-medkit.tar.gz *
 cd $BUILDROOT
 d=`date "+%Y%m%d"`
 mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz
