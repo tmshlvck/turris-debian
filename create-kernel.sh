@@ -10,7 +10,9 @@
 #
 
 KERNELREPO="https://github.com/tmshlvck/omnia-linux.git"
-KERNELBRANCH="omnia"
+REMOTE="github"
+#KERNELBRANCH="omnia"
+KERNELBRANCH="omnia-upstream"
 
 
 export ARCH=arm
@@ -19,12 +21,13 @@ export CROSS_COMPILE=/usr/bin/arm-linux-gnueabihf-
 if [ -d linux ]; then
   cd linux
   git checkout $KERNELBRANCH
-  git pull origin $KERNELBRANCH
+  git pull github $KERNELBRANCH
   make distclean
 else
-  git clone $KERNELREPO linux
+  git clone -o $REMOTE $KERNELREPO linux
   cd linux
   git checkout $KERNELBRANCH
+  make distclean
 fi
 
 make omnia_defconfig
