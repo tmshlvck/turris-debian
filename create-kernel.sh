@@ -10,7 +10,6 @@
 #
 
 KERNELREPO="https://github.com/tmshlvck/omnia-linux.git"
-REMOTE="github"
 #KERNELBRANCH="omnia"
 KERNELBRANCH="omnia-upstream"
 
@@ -21,10 +20,9 @@ export CROSS_COMPILE=/usr/bin/arm-linux-gnueabihf-
 if [ -d linux ]; then
   cd linux
   git checkout $KERNELBRANCH
-  git pull github $KERNELBRANCH
   make distclean
 else
-  git clone -o $REMOTE $KERNELREPO linux
+  git clone -o $KERNELREPO linux
   cd linux
   git checkout $KERNELBRANCH
   make distclean
@@ -34,5 +32,8 @@ make omnia_defconfig
 
 export DEB_HOST_ARCH=armhf
 export CONCURRENCY_LEVEL=`grep -m1 cpu\ cores /proc/cpuinfo | cut -d : -f 2`
+
+# hack needed for kernel 4.9
+touch REPORTING-BUGS
 
 make-kpkg --rootcmd fakeroot --arch arm --cross-compile arm-linux-gnueabihf- --revision=1.0 kernel_image kernel_headers

@@ -4,6 +4,7 @@
 # Packages
 *.deb
 *.tar.gz
+*.md5
 
 # Kernel
 linux/

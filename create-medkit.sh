@@ -21,7 +21,7 @@ PASSWORD="turris"
 BUILDROOT=`pwd`
 ROOTDIR="$BUILDROOT/root"
 
-SWCONFIGREPO="https://github.com/jekader/swconfig.git"
+#SWCONFIGREPO="https://github.com/jekader/swconfig.git"
 
 SCHNAPPSREPO="https://gitlab.labs.nic.cz/turris/misc.git"
 SCHNAPPSBIN="schnapps/schnapps.sh"
@@ -29,7 +29,7 @@ SCHNAPPSBIN="schnapps/schnapps.sh"
 
 
 SUDO='/usr/bin/sudo'
-if [ "$(id -u)" != "0" ]; then
+if [ "$(id -u)" == "0" ]; then
 	SUDO=''
 fi
 
@@ -46,7 +46,8 @@ mkdir $ROOTDIR
 debootstrap --arch armhf --foreign jessie $ROOTDIR $MIRROR
 
 # prepare QEMU
-cp /usr/bin/qemu-arm-static $ROOTDIR/usr/bin/
+cp /usr/bin/qemu-arm-static $ROOTDIR/usr/bin/qemu-arm
+$SUDO update-binfmts --enable qemu-arm
 
 # deboostrap stage2
 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
@@ -75,8 +76,8 @@ cat >$ROOTDIR/etc/rc.local <<EOF
 exit 0
 EOF
 
-cp files/swconfig.sh $ROOTDIR/etc/swconfig.sh
-chown root:root $ROOTDIR/etc/swconfig.sh
+#cp files/swconfig.sh $ROOTDIR/etc/swconfig.sh
+#chown root:root $ROOTDIR/etc/swconfig.sh
 
 cat >$ROOTDIR/etc/fstab <<EOF
 /dev/mmcblk0p1 / btrfs rw,relatime,ssd,subvol=@			0	0
@@ -114,11 +115,11 @@ cat >$ROOTDIR/root/postinst.sh <<EOF
 apt-get -y update
 apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools
 cd /root
-git clone $SWCONFIGREPO swconfig
-cd swconfig
-make
-cp swconfig /usr/local/sbin/
-rm -rf /root/swconfig
+#git clone $SWCONFIGREPO swconfig
+#cd swconfig
+#make
+#cp swconfig /usr/local/sbin/
+#rm -rf /root/swconfig
 sed -ir 's/^PermitRootLogin without-password$/PermitRootLogin yes/' /etc/ssh/sshd_config
 EOF
 
@@ -126,11 +127,10 @@ chroot $ROOTDIR /bin/bash /root/postinst.sh
 rm $ROOTDIR/root/postinst.sh
 
 # cleanup QEMU
-rm $ROOTDIR/usr/bin/qemu-arm-static
+rm $ROOTDIR/usr/bin/qemu-arm
 ENDSCRIPT
 
 cd $BUILDROOT
-rm -rf linux
 
 # copy schnapps script
 cd $BUILDROOT
