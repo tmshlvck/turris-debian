@@ -8,7 +8,8 @@ gcc-arm-linux-gnueabihf \
 devscripts \
 kernel-package \
 binfmt-support \
-qemu-user-binfmt
+qemu-user-binfmt \
+libssl-dev
 
 WORKDIR /root/omnia-debian
 ENTRYPOINT /bin/bash

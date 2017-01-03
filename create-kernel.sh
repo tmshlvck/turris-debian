@@ -31,7 +31,7 @@ fi
 make omnia_defconfig
 
 export DEB_HOST_ARCH=armhf
-export CONCURRENCY_LEVEL=`grep -m1 cpu\ cores /proc/cpuinfo | cut -d : -f 2`
+export CONCURRENCY_LEVEL=$(( `grep processor /proc/cpuinfo | tail -n1 | cut -d: -f2` + 1 ))
 
 # hack needed for kernel 4.9
 touch REPORTING-BUGS
