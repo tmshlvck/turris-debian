@@ -144,6 +144,6 @@ sudo chown root:root $ROOTDIR/usr/local/sbin/sfpswitch.py
 cd $ROOTDIR
 touch ../omnia-medkit.tar.gz
 sudo tar zcf ../omnia-medkit.tar.gz *
-md5sum ../omnia-medkit.tar.gz >../omnia-medkit.tar.gz.md5
 cd $BUILDROOT
+md5sum omnia-medkit.tar.gz >omnia-medkit.tar.gz.md5
 sudo rm -rf $ROOTDIR
