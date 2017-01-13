@@ -32,6 +32,4 @@ make omnia_defconfig
 export DEB_HOST_ARCH=armhf
 export CONCURRENCY_LEVEL=`grep -m1 cpu\ cores /proc/cpuinfo | cut -d : -f 2`
 
-fakeroot make-kpkg --arch arm --cross-compile arm-linux-gnueabihf- kernel_image kernel_headers
-
-
+make-kpkg --rootcmd fakeroot --arch arm --cross-compile arm-linux-gnueabihf- --revision=1.0 kernel_image kernel_headers
