@@ -11,7 +11,7 @@
 
 KERNELREPO="https://github.com/tmshlvck/omnia-linux.git"
 #KERNELBRANCH="omnia"
-KERNELBRANCH="omnia-upstream"
+KERNELBRANCH="master-omnia"
 
 
 export ARCH=arm
