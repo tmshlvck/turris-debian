@@ -32,11 +32,13 @@ SUDO='/usr/bin/sudo'
 if [ "$(id -u)" == "0" ]; then
 	SUDO=''
 fi
+echo "Using sudo: $SUDO"
 
 if [ -z "${ROOTDIR}" ]; then
 	echo "Wrong ROOTDIR: ${ROOTDIR}"
 	exit -1
 fi
+QEMU="/usr/bin/qemu-arm-static"
 
 $SUDO bash <<ENDSCRIPT
 rm -rf $ROOTDIR
@@ -46,8 +48,8 @@ mkdir $ROOTDIR
 debootstrap --arch armhf --foreign jessie $ROOTDIR $MIRROR
 
 # prepare QEMU
-cp /usr/bin/qemu-arm-static $ROOTDIR/usr/bin/qemu-arm
-$SUDO update-binfmts --enable qemu-arm
+cp $QEMU $ROOTDIR/usr/bin/
+update-binfmts --enable qemu-arm
 
 # deboostrap stage2
 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
@@ -71,19 +73,23 @@ EOF
 cat >$ROOTDIR/etc/rc.local <<EOF
 #!/bin/sh -e
 
-/usr/local/sbin/sfpswitch.py
-
 exit 0
 EOF
-
-#cp files/swconfig.sh $ROOTDIR/etc/swconfig.sh
-#chown root:root $ROOTDIR/etc/swconfig.sh
 
 cat >$ROOTDIR/etc/fstab <<EOF
 /dev/mmcblk0p1 / btrfs rw,relatime,ssd,subvol=@			0	0
 EOF
 
+# enable watchdog
 sed -ir 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
+
+# copy omnia-gen-bootlink
+cd $BUILDROOT
+cp files/omnia-gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
+chown root:root $ROOTDIR/etc/kernel/postinst.d/omnia-gen-bootlink
+ 
+# prepare directory for scripts
+mkdir -p $ROOTDIR/usr/local/sbin/
 ENDSCRIPT
 
 # build kernel
@@ -94,32 +100,15 @@ KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_"`
 HIP=`ls linux-headers-*_armhf.deb`
 $SUDO cp $KIP $HIP $ROOTDIR
 
-# copy omnia-gen-bootlink
-$SUDO cp files/omnia-gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
-$SUDO chown root:root /etc/kernel/postinst.d/omnia-gen-bootlink
-
-# install packages and run postinst
+# run postinst script in QEMU and cleanup
 $SUDO bash <<ENDSCRIPT
-chroot $ROOTDIR dpkg -i $KIP $HIP
-rm $ROOTDIR/$KIP $ROOTDIR/$HIP
-
-mkdir -p $ROOTDIR/usr/include/linux
-cp $BUILDROOT/linux/include/uapi/linux/switch.h $ROOTDIR/usr/include/linux
-chown root:root $ROOTDIR/usr/include/linux/switch.h
-
-cd $BUILDROOT
-
-# run postinst script in QEMU
 cat >$ROOTDIR/root/postinst.sh <<EOF
+cd /
+dpkg -i $KIP $HIP
+rm -f $KIP $HIP
 /etc/kernel/postinst.d/omnia-gen-bootlink
 apt-get -y update
 apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools
-cd /root
-#git clone $SWCONFIGREPO swconfig
-#cd swconfig
-#make
-#cp swconfig /usr/local/sbin/
-#rm -rf /root/swconfig
 sed -ir 's/^PermitRootLogin without-password$/PermitRootLogin yes/' /etc/ssh/sshd_config
 EOF
 
@@ -127,10 +116,8 @@ chroot $ROOTDIR /bin/bash /root/postinst.sh
 rm $ROOTDIR/root/postinst.sh
 
 # cleanup QEMU
-rm $ROOTDIR/usr/bin/qemu-arm
+rm ${ROOTDIR}${QEMU}
 ENDSCRIPT
-
-cd $BUILDROOT
 
 # copy schnapps script
 cd $BUILDROOT
@@ -140,13 +127,9 @@ $SUDO chown root:root $ROOTDIR/usr/local/sbin/schnapps
 $SUDO chmod a+x $ROOTDIR/usr/local/sbin/schnapps
 rm -rf misc
 
-# copy sfpswitch.py
-$SUDO cp files/sfpswitch.py $ROOTDIR/usr/local/sbin/sfpswitch.py
-$SUDO chown root:root $ROOTDIR/usr/local/sbin/sfpswitch.py
-
 # create package
 cd $ROOTDIR
-touch ../omnia-medkit.tar.gz
+$SUDO rm -f ../omnia-medkit.tar.gz
 $SUDO tar zcf ../omnia-medkit.tar.gz *
 cd $BUILDROOT
 d=`date "+%Y%m%d"`
