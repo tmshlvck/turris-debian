@@ -28,3 +28,10 @@ http://aule.elfove.cz/~brill/omnia-debian/
 
 But... Create your own image. It is easy!
 
+Please note:
+
+There the project Wiki: https://github.com/tmshlvck/omnia-debian/wiki
+
+You can find more information about installation, upstreaming of the
+software, experimental Omnia Debian branch etc. there.
+
