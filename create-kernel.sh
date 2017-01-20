@@ -22,7 +22,7 @@ if [ -d linux ]; then
   git checkout $KERNELBRANCH
   make distclean
 else
-  git clone -o $KERNELREPO linux
+  git clone $KERNELREPO linux
   cd linux
   git checkout $KERNELBRANCH
   make distclean
