@@ -21,8 +21,6 @@ PASSWORD="turris"
 BUILDROOT=`pwd`
 ROOTDIR="$BUILDROOT/root"
 
-#SWCONFIGREPO="https://github.com/jekader/swconfig.git"
-
 SCHNAPPSREPO="https://gitlab.labs.nic.cz/turris/misc.git"
 SCHNAPPSBIN="schnapps/schnapps.sh"
 
@@ -92,12 +90,17 @@ chown root:root $ROOTDIR/etc/kernel/postinst.d/omnia-gen-bootlink
 mkdir -p $ROOTDIR/usr/local/sbin/
 ENDSCRIPT
 
-# build kernel
+# build or use already built kernel
 cd $BUILDROOT
-./create-kernel.sh
-cd $BUILDROOT
-KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_"`
-HIP=`ls linux-headers-*_armhf.deb`
+KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
+HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
+
+if [ -z "${KIP}" ] || [ -z "${HIP}" ] ; then
+  ./create-kernel.sh
+  cd $BUILDROOT
+  KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
+  HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
+fi
 $SUDO cp $KIP $HIP $ROOTDIR
 
 # run postinst script in QEMU and cleanup
@@ -110,6 +113,7 @@ rm -f $KIP $HIP
 apt-get -y update
 apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools
 sed -ir 's/^PermitRootLogin without-password$/PermitRootLogin yes/' /etc/ssh/sshd_config
+echo "mv88e6xxx" >> /etc/modules
 EOF
 
 chroot $ROOTDIR /bin/bash /root/postinst.sh
