@@ -145,5 +145,7 @@ cd $ROOTDIR
 touch ../omnia-medkit.tar.gz
 sudo tar zcf ../omnia-medkit.tar.gz *
 cd $BUILDROOT
-md5sum omnia-medkit.tar.gz >omnia-medkit.tar.gz.md5
+d=`date "+%Y%m%d"`
+mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz
+md5sum omnia-medkit-${d}.tar.gz >omnia-medkit-${d}.tar.gz.md5
 sudo rm -rf $ROOTDIR
