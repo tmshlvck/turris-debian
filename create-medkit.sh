@@ -148,4 +148,4 @@ cd $BUILDROOT
 d=`date "+%Y%m%d"`
 mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz
 md5sum omnia-medkit-${d}.tar.gz >omnia-medkit-${d}.tar.gz.md5
-sudo rm -rf $ROOTDIR
+$SUDO rm -rf $ROOTDIR
