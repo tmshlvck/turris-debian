@@ -15,6 +15,7 @@
 #
 
 MIRROR="http://ucho.ignum.cz/debian/"
+DEBVER="stretch"
 HOSTNAME="turris"
 PASSWORD="turris"
 
@@ -36,18 +37,26 @@ if [ -z "${ROOTDIR}" ]; then
 	echo "Wrong ROOTDIR: ${ROOTDIR}"
 	exit -1
 fi
-QEMU="/usr/bin/qemu-arm-static"
+QEMU=`which qemu-arm-static`
+if ! [ -f ${QEMU} ]; then
+	echo "QEMU $QEMU not found. Stop."
+	exit -1
+fi
 
 $SUDO bash <<ENDSCRIPT
 rm -rf $ROOTDIR
 mkdir $ROOTDIR
 
 # debootstrap stage1
-debootstrap --arch armhf --foreign jessie $ROOTDIR $MIRROR
+debootstrap --arch armhf --foreign stretch $ROOTDIR $MIRROR
+if [[ $? != 0 ]]; then
+	print "Debootstrap failed. Exit."
+	exit -1
+fi
 
 # prepare QEMU
 cp $QEMU $ROOTDIR/usr/bin/
-update-binfmts --enable qemu-arm
+#update-binfmts --enable qemu-arm
 
 # deboostrap stage2
 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
@@ -64,9 +73,10 @@ cp files/interfaces $ROOTDIR/etc/network/interfaces
 chown root:root $ROOTDIR/etc/network/interfaces
 
 cat >$ROOTDIR/etc/apt/sources.list <<EOF
-deb $MIRROR jessie main
-deb http://security.debian.org/ jessie/updates main
+deb $MIRROR $DEBVER main
+deb http://security.debian.org/ $DEBVER/updates main
 EOF
+
 
 cat >$ROOTDIR/etc/rc.local <<EOF
 #!/bin/sh -e
@@ -90,18 +100,24 @@ chown root:root $ROOTDIR/etc/kernel/postinst.d/omnia-gen-bootlink
 mkdir -p $ROOTDIR/usr/local/sbin/
 ENDSCRIPT
 
-# build or use already built kernel
-cd $BUILDROOT
-KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
-HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
-
-if [ -z "${KIP}" ] || [ -z "${HIP}" ] ; then
-  ./create-kernel.sh
-  cd $BUILDROOT
-  KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
-  HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
+if [[ $? != 0 ]]; then
+	print "Sudoed script failed. Exit."
+	exit -1
 fi
-$SUDO cp $KIP $HIP $ROOTDIR
+
+
+# build or use already built kernel
+#cd $BUILDROOT
+#KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
+#HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
+#
+#if [ -z "${KIP}" ] || [ -z "${HIP}" ] ; then
+#  ./create-kernel.sh
+#  cd $BUILDROOT
+#  KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
+#  HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
+#fi
+#$SUDO cp $KIP $HIP $ROOTDIR
 
 # run postinst script in QEMU and cleanup
 $SUDO bash <<ENDSCRIPT
@@ -140,3 +156,4 @@ d=`date "+%Y%m%d"`
 mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz
 md5sum omnia-medkit-${d}.tar.gz >omnia-medkit-${d}.tar.gz.md5
 $SUDO rm -rf $ROOTDIR
+
