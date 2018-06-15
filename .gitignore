@@ -7,5 +7,9 @@
 *.md5
 
 # Kernel
-linux/
+omnia/linux/
+mox/linux/
 
+# root dirs
+omnia/root/
+mox/root/
