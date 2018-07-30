@@ -48,7 +48,7 @@ rm -rf $ROOTDIR
 mkdir $ROOTDIR
 
 # debootstrap stage1
-debootstrap --arch armhf --foreign stretch $ROOTDIR $MIRROR
+debootstrap --arch armhf --foreign $DEBVER $ROOTDIR $MIRROR
 if [[ $? != 0 ]]; then
 	print "Debootstrap failed. Exit."
 	exit -1
@@ -61,8 +61,17 @@ cp $QEMU $ROOTDIR/usr/bin/
 # deboostrap stage2
 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
  LC_ALL=C LANGUAGE=C LANG=C chroot $ROOTDIR /debootstrap/debootstrap --second-stage
+if [[ $? != 0 ]]; then
+	print "Debootstrap failed. Exit."
+	exit -1
+fi
+
 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
  LC_ALL=C LANGUAGE=C LANG=C chroot $ROOTDIR dpkg --configure -a
+if [[ $? != 0 ]]; then
+	print "dpkg --configure failed. Exit."
+	exit -1
+fi
 
 # configure the system
 echo -e "${PASSWORD}\n${PASSWORD}" | chroot $ROOTDIR passwd root
@@ -106,20 +115,15 @@ if [[ $? != 0 ]]; then
 fi
 
 
-# build or use already built kernel
-#cd $BUILDROOT
-#KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
-#HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
-#
-#if [ -z "${KIP}" ] || [ -z "${HIP}" ] ; then
-#  ./create-kernel.sh
-#  cd $BUILDROOT
-#  KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
-#  HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
-#fi
-#$SUDO cp $KIP $HIP $ROOTDIR
+# use already built kernel
+cd $BUILDROOT
+KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
+HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
+$SUDO cp $KIP $HIP $ROOTDIR
 
 # run postinst script in QEMU and cleanup
+
+
 $SUDO bash <<ENDSCRIPT
 cat >$ROOTDIR/root/postinst.sh <<EOF
 cd /
@@ -129,23 +133,22 @@ rm -f $KIP $HIP
 apt-get -y update
 apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools
 sed -ir 's/^PermitRootLogin without-password$/PermitRootLogin yes/' /etc/ssh/sshd_config
-echo "mv88e6xxx" >> /etc/modules
 EOF
 
 chroot $ROOTDIR /bin/bash /root/postinst.sh
 rm $ROOTDIR/root/postinst.sh
 
 # cleanup QEMU
-rm ${ROOTDIR}${QEMU}
+#rm ${ROOTDIR}${QEMU}
 ENDSCRIPT
 
 # copy schnapps script
-cd $BUILDROOT
-git clone $SCHNAPPSREPO misc
-$SUDO cp misc/$SCHNAPPSBIN $ROOTDIR/usr/local/sbin/schnapps
-$SUDO chown root:root $ROOTDIR/usr/local/sbin/schnapps
-$SUDO chmod a+x $ROOTDIR/usr/local/sbin/schnapps
-rm -rf misc
+#cd $BUILDROOT
+#git clone $SCHNAPPSREPO misc
+#$SUDO cp misc/$SCHNAPPSBIN $ROOTDIR/usr/local/sbin/schnapps
+#$SUDO chown root:root $ROOTDIR/usr/local/sbin/schnapps
+#$SUDO chmod a+x $ROOTDIR/usr/local/sbin/schnapps
+#rm -rf misc
 
 # create package
 cd $ROOTDIR
@@ -153,7 +156,9 @@ $SUDO rm -f ../omnia-medkit.tar.gz
 $SUDO tar zcf ../omnia-medkit.tar.gz *
 cd $BUILDROOT
 d=`date "+%Y%m%d"`
-mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz
-md5sum omnia-medkit-${d}.tar.gz >omnia-medkit-${d}.tar.gz.md5
+$SUDO mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz
+$SUDO md5sum omnia-medkit-${d}.tar.gz >omnia-medkit-${d}.tar.gz.md5
+
+exit 0
 $SUDO rm -rf $ROOTDIR
 

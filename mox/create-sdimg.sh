@@ -134,7 +134,7 @@ rm -f $KIP $HIP
 /etc/kernel/postinst.d/gen-bootlink
 apt-get -y update
 apt-get -y install build-essential gcc make git python ssh btrfs-tools i2c-tools
-sed -ir 's/^PermitRootLogin without-password$/PermitRootLogin yes/' /etc/ssh/sshd_config
+sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
 EOF
 
 chroot $ROOTDIR /bin/bash /root/postinst.sh
