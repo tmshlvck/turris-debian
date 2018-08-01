@@ -4,9 +4,10 @@
 #
 # prerequisities - Debian packages:
 # git
-# gcc-arm-linux-gnueabihf
 # devscripts
 # kernel-package
+#
+# Linaro GCC 7.3 & toolchain
 #
 
 #KERNELREPO="https://github.com/tmshlvck/omnia-linux.git"

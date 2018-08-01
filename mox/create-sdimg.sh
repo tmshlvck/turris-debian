@@ -7,10 +7,11 @@
 # qemu-user
 # qemu-user-static
 # git
-# gcc-arm-linux-gnueabihf
 # devscripts
 # kernel-package
 # u-boot-tools
+#
+# Linaro GCC 7.3 & toolchain
 #
 # $SUDO || root privileges
 #
@@ -121,6 +122,12 @@ fi
 cd $BUILDROOT
 KIP=`ls linux-image-*_arm64.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
 HIP=`ls linux-headers-*_arm64.deb | sort --version-sort | tail -n1`
+if ! [ -f $KIP ]; then
+	echo "Missing file $KIP . Exit."
+fi
+if ! [ -f $HIP ]; then
+	echo "Missing file $HIP . Exit."
+fi
 $SUDO cp $KIP $HIP $ROOTDIR
 
 # run postinst script in QEMU and cleanup
