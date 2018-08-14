@@ -94,7 +94,7 @@ exit 0
 EOF
 
 cat >$ROOTDIR/etc/fstab <<EOF
-/dev/mmcblk0p1 / btrfs rw,relatime,ssd,subvol=@			0	0
+/dev/mmcblk0p1 / btrfs rw,ssd,subvol=@,noatime,nodiratime		0	0
 EOF
 
 # enable watchdog
@@ -132,7 +132,7 @@ rm -f $KIP $HIP
 /etc/kernel/postinst.d/omnia-gen-bootlink
 apt-get -y update
 apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools
-sed -ir 's/^PermitRootLogin without-password$/PermitRootLogin yes/' /etc/ssh/sshd_config
+sed -ir 's/^#?PermitRootLogin .+$/PermitRootLogin yes/' /etc/ssh/sshd_config
 EOF
 
 chroot $ROOTDIR /bin/bash /root/postinst.sh

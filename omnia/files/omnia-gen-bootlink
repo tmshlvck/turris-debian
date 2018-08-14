@@ -1,7 +1,9 @@
 #!/bin/bash
 
+WAN='sfp' # sfp or phy
+
 KI=`find /boot/ -name "vmlinuz-*" | sort --version-sort | tail -n1`
-DT="`find /usr/lib/ -name "linux-image-*" | sort --version-sort | tail -n1`/armada-385-turris-omnia.dtb"
+DT="`find /usr/lib/ -name "linux-image-*" | sort --version-sort | tail -n1`/armada-385-turris-omnia-${WAN}.dtb"
 
 if [ -z "${KI}" ] || [ -z "${DT}" ]; then
         echo "Kernel image or DT not found. Exit."

@@ -9,25 +9,8 @@
 # kernel-package
 #
 
-#KERNELREPO="https://github.com/tmshlvck/omnia-linux.git"
-##KERNELBRANCH="omnia"
-#KERNELBRANCH="master-omnia"
-
-
 export ARCH=arm
-export CROSS_COMPILE=/usr/bin/arm-linux-gnueabihf-
-
-#if [ -d linux ]; then
-#  cd linux
-##  git checkout $KERNELBRANCH
-#  make distclean
-#else
-#  git clone $KERNELREPO linux
-#  cd linux
-#  git checkout $KERNELBRANCH
-#  make distclean
-#fi
-
+export CROSS_COMPILE=arm-linux-gnueabihf-
 
 R=`ls linux-image-*.deb | cut -d"_" -f2 | awk '$0>x{x=$0};END{print x}'`
 if [ -z "${R}" ]; then
