@@ -107,6 +107,11 @@ mkimage -T script -C none -n boot -d files/boot.txt ${ROOTDIR}/boot/boot.scr
 cd $BUILDROOT
 cp files/gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
 chown root:root $ROOTDIR/etc/kernel/postinst.d/gen-bootlink
+
+# copy Marvell firmware
+cd $BUILDROOT
+mkdir -p $ROOTDIR/lib/firmware/mrvl
+cp files/sd8997_uapsta.bin $ROOTDIR/lib/firmware/mrvl
  
 # prepare directory for scripts
 mkdir -p $ROOTDIR/usr/local/sbin/
