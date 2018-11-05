@@ -1,6 +1,23 @@
 #!/bin/bash
 
-WAN='sfp' # sfp or phy
+#WAN="sfp" # sfp or phy
+
+# autodetect SFP
+ip link set down eth2
+rmmod sfp
+echo '508' > /sys/class/gpio/export
+echo 'in' > /sys/class/gpio/gpio508/direction
+read gpioval </sys/class/gpio/gpio508/value
+echo '508' > /sys/class/gpio/unexport
+if (( $gpioval == 0 )); then
+	WAN='sfp'
+else
+	WAN='phy'
+fi
+modprobe sfp
+
+echo "DT version: $WAN"
+
 
 KI=`find /boot/ -name "vmlinuz-*" | sort --version-sort | tail -n1`
 DT="`find /usr/lib/ -name "linux-image-*" | sort --version-sort | tail -n1`/armada-385-turris-omnia-${WAN}.dtb"
