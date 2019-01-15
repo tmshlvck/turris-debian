@@ -1,5 +1,7 @@
 #!/bin/bash
 
+S3="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20181206T214502Z.tar.xz"
+
 if (( `id -u` != 0 )); then
 	echo "Error: Script must run as root in order to chroot to the directory. Exit."
 	exit -1
@@ -7,11 +9,11 @@ fi
 
 if ! [ -d builddir ]; then
 	mkdir builddir
-	if ! [ -f stage3-amd64-20181016T214502Z.tar.xz ]; then
-		wget http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20181016T214502Z.tar.xz
+	if ! [ -f s3.tar.xz ]; then
+		wget -O s3.tar.xz $S3
 	fi
 	cd builddir
-	tar xf ../stage3-amd64-20181016T214502Z.tar.xz
+	tar xf ../s3.tar.xz
 	cd ..
 
 	if ! [ -f portage-latest.tar.bz2 ]; then
@@ -21,7 +23,7 @@ if ! [ -d builddir ]; then
 	tar xf ../../portage-latest.tar.bz2
 	cd ..
 
-	cp /etc/resolv.conf etc
+	cp /etc/resolv.conf etc/
 
 	cd ..
 fi
