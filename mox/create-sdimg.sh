@@ -3,15 +3,9 @@
 # by Tomas Hlavacek (tmshlvck@gmail.com)
 #
 # prerequisities - Debian packages:
-# debootstrap
-# qemu-user
-# qemu-user-static
-# git
-# devscripts
-# kernel-package
-# u-boot-tools
+# apt-get install debootstrap qemu-user qemu-user-static git devscripts kernel-package u-boot-tools
 #
-# Linaro GCC 7.3 & toolchain
+# Linaro GCC 7.3 & toolchain int /opt
 #
 # $SUDO || root privileges
 #

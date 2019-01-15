@@ -2,12 +2,10 @@
 #
 # by Tomas Hlavacek (tmshlvck@gmail.com)
 #
-# prerequisities - Debian packages:
-# git
-# devscripts
-# kernel-package
+# prerequisities - install packages:
+# apt-get install git devscripts kernel-package libssl-dev libncurses-dev
 #
-# Linaro GCC 7.3 & toolchain
+# Linaro GCC 7.3 & toolchain in /opt
 #
 
 #KERNELREPO="https://github.com/tmshlvck/omnia-linux.git"
