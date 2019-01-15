@@ -13,3 +13,6 @@ mox/linux
 # root dirs
 omnia/root
 mox/root
+
+# build dir
+mox-uboot/builddir/
