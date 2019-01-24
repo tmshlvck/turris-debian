@@ -82,8 +82,8 @@ cp files/interfaces $ROOTDIR/etc/network/interfaces
 chown root:root $ROOTDIR/etc/network/interfaces
 
 cat >$ROOTDIR/etc/apt/sources.list <<EOF
-deb $MIRROR $DEBVER main
-deb http://security.debian.org/ $DEBVER/updates main
+deb $MIRROR $DEBVER main non-free
+deb http://security.debian.org/ $DEBVER/updates main non-free
 EOF
 
 
@@ -131,7 +131,7 @@ dpkg -i $KIP $HIP
 rm -f $KIP $HIP
 /etc/kernel/postinst.d/omnia-gen-bootlink
 apt-get -y update
-apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools
+apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools firmware-atheros
 sed -ir 's/^#?PermitRootLogin .+$/PermitRootLogin yes/' /etc/ssh/sshd_config
 EOF
 
