@@ -33,6 +33,14 @@ if [ -z "${R}" ]; then
 fi
 R=$(($R + 1))
 
+if [ -f linux/.config ] && [ -f linux/arch/arm64/configs/mox_defconfig ]; then
+	if ! diff files/mox_defconfig linux/.config >/dev/null; then
+		echo "The config in Kernel tree differs from files/mox_defconfig. Copy it or remove it:"
+		echo "  ---->   cp linux/.config files/mox_defconfig"
+		echo "  ---->   rm linux/.config"
+		exit 0
+	fi
+fi
 cp files/mox_defconfig linux/arch/arm64/configs
 cd linux
 make mox_defconfig

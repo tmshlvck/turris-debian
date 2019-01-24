@@ -18,6 +18,14 @@ if [ -z "${R}" ]; then
 fi
 R=$(($R + 1))
 
+if [ -f linux/.config ] && [ -f linux/arch/arm/configs/omnia_defconfig ]; then
+	if ! diff files/omnia_defconfig linux/.config >/dev/null; then
+		echo "The config in Kernel tree differs from files/omnia_defconfig. Copy it or remove it:"
+		echo "  ---->   cp linux/.config files/omnia_defconfig"
+		echo "  ---->   rm linux/.config"
+		exit 0
+	fi
+fi
 cp files/omnia_defconfig linux/arch/arm/configs
 cd linux
 make omnia_defconfig
