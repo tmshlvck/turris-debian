@@ -6,6 +6,9 @@ auto lo
 iface lo inet loopback
 
 # LAN
+auto eth0
+iface eth0 inet manual
+
 auto br0
 iface br0 inet static
 	bridge_ports lan0 lan1 lan2 lan3 lan4

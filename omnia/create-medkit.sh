@@ -98,7 +98,7 @@ cat >$ROOTDIR/etc/fstab <<EOF
 EOF
 
 # enable watchdog
-sed -ir 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
+sed -i 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
 
 # copy omnia-gen-bootlink
 cd $BUILDROOT
@@ -132,7 +132,7 @@ rm -f $KIP $HIP
 /etc/kernel/postinst.d/omnia-gen-bootlink
 apt-get -y update
 apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools firmware-atheros
-sed -ir 's/^#?PermitRootLogin .+$/PermitRootLogin yes/' /etc/ssh/sshd_config
+sed -i 's/^.\?PermitRootLogin .\+$/PermitRootLogin yes/' /etc/ssh/sshd_config
 EOF
 
 chroot $ROOTDIR /bin/bash /root/postinst.sh

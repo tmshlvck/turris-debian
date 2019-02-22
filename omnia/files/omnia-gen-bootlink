@@ -1,36 +1,51 @@
 #!/bin/bash
 
-#WAN="sfp" # sfp or phy
+# this has to be done in U-Boot
+##WAN="sfp" # sfp or phy
+#
+## autodetect SFP
+#ip link set down eth2
+#rmmod sfp
+#echo '508' > /sys/class/gpio/export
+#echo 'in' > /sys/class/gpio/gpio508/direction
+#read gpioval </sys/class/gpio/gpio508/value
+#echo '508' > /sys/class/gpio/unexport
+#if (( $gpioval == 0 )); then
+#	WAN='sfp'
+#else
+#	WAN='phy'
+#fi
+#modprobe sfp
 
-# autodetect SFP
-ip link set down eth2
-rmmod sfp
-echo '508' > /sys/class/gpio/export
-echo 'in' > /sys/class/gpio/gpio508/direction
-read gpioval </sys/class/gpio/gpio508/value
-echo '508' > /sys/class/gpio/unexport
-if (( $gpioval == 0 )); then
-	WAN='sfp'
-else
-	WAN='phy'
-fi
-modprobe sfp
-
-echo "DT version: $WAN"
+#echo "DT version: $WAN"
 
 
 KI=`find /boot/ -name "vmlinuz-*" | sort --version-sort | tail -n1`
-DT="`find /usr/lib/ -name "linux-image-*" | sort --version-sort | tail -n1`/armada-385-turris-omnia-${WAN}.dtb"
+DTPHY="`find /usr/lib/ -name "linux-image-*" | sort --version-sort | tail -n1`/armada-385-turris-omnia-phy.dtb"
+DTSFP="`find /usr/lib/ -name "linux-image-*" | sort --version-sort | tail -n1`/armada-385-turris-omnia-sfp.dtb"
 
-if [ -z "${KI}" ] || [ -z "${DT}" ]; then
+if [ -z "${KI}" ] || [ -z "${DTPHY}" ] || [ -z "${DTSFP}" ]; then
         echo "Kernel image or DT not found. Exit."
 fi
 
 echo "Kernel Image: $KI"
-echo "Device Tree: $DT"
+echo "Device Tree for PHY: $DTPHY"
+echo "Device Tree for SFP: $DTSFP"
 
 rm /boot/zImage
 rm /boot/dtb
+rm /boot/dtb-wanphy
+rm /boot/dtb-wansfp
 ln -s $KI /boot/zImage
-ln -s $DT /boot/dtb
+ln -s $DTPHY /boot/dtb-wanphy
+ln -s $DTSFP /boot/dtb-wansfp
+
+# keep the old /boot/dtb file for backward compatibility for boards without the
+# proper U-Boot environment, which is:
+# 
+# setenv mmcboot 'run selectwan; setenv bootargs \"$bootargs cfg80211.freg=$regdomain\"; btrload mmc 0 0x01000000 boot/zImage @; btrload mmc 0 0x02000000 boot/dtb-wan$wan @; bootz 0x01000000 - 0x02000000'
+#
+# setenv selectwan 'i2c bus 0; i2c mw 0x70 0x0f 0x0f; i2c read 0x71 0x0 1 0x00FFFFF1; setexpr.b sfppin *0x00FFFFF1 \\& 0x10; if test $sfppin -gt 0; then echo PHY; setenv wan phy; else echo SFP; setenv wan sfp; fi'
+#
+ln -s $DTPHY /boot/dtb
 
