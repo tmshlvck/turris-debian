@@ -1,7 +1,7 @@
 #!/bin/bash
 
 KI=`find /boot/ -name "vmlinuz-*" | sort --version-sort | tail -n1`
-DT="`find /usr/lib/ -name "linux-image-*" | sort --version-sort | tail -n1`/armada-385-turris-omnia.dtb"
+DT="`find /usr/lib/ -name "linux-image-*" | sort --version-sort | tail -n1`/marvell/armada-3720-turris-mox.dtb"
 
 if [ -z "${KI}" ] || [ -z "${DT}" ]; then
         echo "Kernel image or DT not found. Exit."
@@ -10,8 +10,8 @@ fi
 echo "Kernel Image: $KI"
 echo "Device Tree: $DT"
 
-rm /boot/zImage
+rm /boot/vmlinuz
 rm /boot/dtb
-ln -s $KI /boot/zImage
+ln -s $KI /boot/vmlinuz
 ln -s $DT /boot/dtb
 

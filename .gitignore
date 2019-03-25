@@ -4,7 +4,15 @@
 # Packages
 *.deb
 *.tar.gz
+*.md5
 
 # Kernel
-linux/
+omnia/linux
+mox/linux
 
+# root dirs
+omnia/root
+mox/root
+
+# build dir
+mox-uboot/builddir/
