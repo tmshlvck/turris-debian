@@ -15,7 +15,7 @@
 #
 
 MIRROR="http://ucho.ignum.cz/debian/"
-DEBVER="stretch"
+DEBVER="buster"
 HOSTNAME="turris"
 PASSWORD="turris"
 
