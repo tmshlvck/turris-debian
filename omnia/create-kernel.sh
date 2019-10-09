@@ -33,5 +33,6 @@ make omnia_defconfig
 export DEB_HOST_ARCH=armhf
 export CONCURRENCY_LEVEL=$(( `grep processor /proc/cpuinfo | tail -n1 | cut -d: -f2` + 1 ))
 
-make-kpkg --rootcmd fakeroot --arch arm --cross-compile arm-linux-gnueabihf- --revision=$R kernel_image kernel_headers
+#make-kpkg --rootcmd fakeroot --arch arm --cross-compile arm-linux-gnueabihf- --revision=$R kernel_image kernel_headers
+make -j ${CONCURRENCY_LEVEL} deb-pkg KDEB_PKGVERSION=${R}
 
