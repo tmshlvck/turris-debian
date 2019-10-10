@@ -100,6 +100,9 @@ EOF
 # enable watchdog
 sed -i 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
 
+# prepare U-Boot bootscript
+$SUDO mkimage -T script -C none -n boot -d files/boot.txt ${ROOTDIR}/boot/boot.scr
+
 # copy omnia-gen-bootlink
 cd $BUILDROOT
 cp files/omnia-gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
@@ -141,14 +144,6 @@ rm $ROOTDIR/root/postinst.sh
 # cleanup QEMU
 #rm ${ROOTDIR}${QEMU}
 ENDSCRIPT
-
-# copy schnapps script
-#cd $BUILDROOT
-#git clone $SCHNAPPSREPO misc
-#$SUDO cp misc/$SCHNAPPSBIN $ROOTDIR/usr/local/sbin/schnapps
-#$SUDO chown root:root $ROOTDIR/usr/local/sbin/schnapps
-#$SUDO chmod a+x $ROOTDIR/usr/local/sbin/schnapps
-#rm -rf misc
 
 # create package
 cd $ROOTDIR
