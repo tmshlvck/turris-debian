@@ -1,5 +1,5 @@
 setenv bootargs "earlyprintk console=$console root=b301 rootdelay=2 rootflags=subvol=@,commit=5 rw"
 setenv selectwan 'if gpio input gpio@71_4; then echo SFP; setenv wan sfp; else echo PHY; setenv wan phy; fi'
-setenv omnia_boot 'run selectwan; setenv bootargs \"$bootargs cfg80211.freg=$regdomain\"; load mmc 0 ${kernel_addr_r} /@/boot/zImage; load mmc 0 ${fdt_addr_r} /@/boot/dtb-wan$wan; bootz ${kernel_addr_r} - ${fdt_addr_r};'
+setenv omnia_boot 'run selectwan; load mmc 0 ${kernel_addr_r} /@/boot/zImage; load mmc 0 ${fdt_addr_r} /@/boot/dtb-wan$wan; bootz ${kernel_addr_r} - ${fdt_addr_r};'
 
 run omnia_boot
