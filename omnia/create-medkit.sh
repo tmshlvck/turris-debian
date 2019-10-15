@@ -14,7 +14,7 @@
 # $SUDO || root privileges
 #
 
-MIRROR="http://ucho.ignum.cz/debian/"
+MIRROR="http://debian.ignum.cz/debian/"
 DEBVER="buster"
 HOSTNAME="turris"
 PASSWORD="turris"
@@ -134,7 +134,7 @@ dpkg -i $KIP $HIP
 rm -f $KIP $HIP
 /etc/kernel/postinst.d/omnia-gen-bootlink
 apt-get -y update
-apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools firmware-atheros
+apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools firmware-atheros crda
 sed -i 's/^.\?PermitRootLogin .\+$/PermitRootLogin yes/' /etc/ssh/sshd_config
 EOF
 
