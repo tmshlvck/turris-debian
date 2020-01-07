@@ -3,15 +3,15 @@
 # by Tomas Hlavacek (tmshlvck@gmail.com)
 #
 # prerequisities - Debian packages:
-# apt-get install debootstrap qemu-user qemu-user-static git devscripts kernel-package u-boot-tools
+# apt-get install debootstrap qemu-user qemu-user-static git devscripts u-boot-tools
 #
 # Linaro GCC 7.3 & toolchain int /opt
 #
 # $SUDO || root privileges
 #
 
-MIRROR="http://ucho.ignum.cz/debian/"
-DEBVER="stretch"
+MIRROR="http://debian.ignum.cz/debian/"
+DEBVER="buster"
 HOSTNAME="turris"
 PASSWORD="turris"
 
