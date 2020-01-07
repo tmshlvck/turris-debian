@@ -1,0 +1,2 @@
+iw dev mlan0 interface add uap0 type __ap
+

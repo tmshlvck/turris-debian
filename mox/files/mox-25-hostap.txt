@@ -11,7 +11,6 @@ channel=acs_survey
 
 
 ieee80211n=1
-ht_coex=0
 ht_capab=[LDPC][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC12]
 
 interface=wlan0
