@@ -46,9 +46,10 @@ cd linux
 make mox_defconfig
 
 export DEB_HOST_ARCH=arm64
-export CONCURRENCY_LEVEL=$(( `grep processor /proc/cpuinfo | tail -n1 | cut -d: -f2` + 1 ))
 
 TOOLCHAINDIR=`dirname $(which ${CROSS_COMPILE}gcc)`
 CROSS_PREFIX="${TOOLCHAINDIR}/${CROSS_COMPILE}"
 
-make-kpkg --rootcmd fakeroot --arch arm64 --cross-compile $CROSS_PREFIX --revision=$R kernel_image kernel_headers
+#make-kpkg --rootcmd fakeroot --arch arm64 --cross-compile $CROSS_PREFIX --revision=$R kernel_image kernel_headers
+make -j $(nproc) deb-pkg KDEB_PKGVERSION=${R}
+
