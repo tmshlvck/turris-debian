@@ -1,3 +1,6 @@
 [submodule "omnia/turris-omnia-uboot"]
 	path = omnia/turris-omnia-uboot
 	url = git@gitlab.labs.nic.cz:turris/turris-omnia-uboot.git
+[submodule "mox/linux"]
+	path = mox/linux
+	url = git@github.com:tmshlvck/linux.git
