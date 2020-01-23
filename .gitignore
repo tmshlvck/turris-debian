@@ -5,14 +5,15 @@
 *.deb
 *.tar.gz
 *.md5
-
-# Kernel
-omnia/linux
-mox/linux
+*.diff.gz
+*.dsc
+*.buildinfo
+*.changes
+*.diff.gz
 
 # root dirs
 omnia/root
 mox/root
 
 # build dir
-mox-uboot/builddir/
+mox/uboot/builddir/
