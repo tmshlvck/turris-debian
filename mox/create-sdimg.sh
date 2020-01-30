@@ -117,38 +117,41 @@ if [[ $? != 0 ]]; then
 fi
 
 
-# use already built kernel
-cd $BUILDROOT
-KIP=`ls linux-image-*_arm64.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
-HIP=`ls linux-headers-*_arm64.deb | sort --version-sort | tail -n1`
-if ! [ -f $KIP ]; then
-	echo "Missing file $KIP . Exit."
-fi
-if ! [ -f $HIP ]; then
-	echo "Missing file $HIP . Exit."
-fi
-$SUDO cp $KIP $HIP $ROOTDIR
-
 # run postinst script in QEMU and cleanup
 
-
-$SUDO bash <<ENDSCRIPT
-cat >$ROOTDIR/root/postinst.sh <<EOF
+$SUDO chroot $ROOTDIR /bin/bash <<ENDSCRIPT
 cd /
-dpkg -i $KIP $HIP
-rm -f $KIP $HIP
-/etc/kernel/postinst.d/gen-bootlink
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2A1CABB35F7C596
 apt-get -y update
+apt-get -y install linux-kernel-mox
+/etc/kernel/postinst.d/gen-bootlink
+
 apt-get -y install build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros
 sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
-EOF
-
-chroot $ROOTDIR /bin/bash /root/postinst.sh
-rm $ROOTDIR/root/postinst.sh
+ENDSCRIPT
 
 # cleanup QEMU
 #rm ${ROOTDIR}${QEMU}
-ENDSCRIPT
+
+#
+#$SUDO bash <<ENDSCRIPT
+#cat >$ROOTDIR/root/postinst.sh <<EOF
+#cd /
+#apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2A1CABB35F7C596
+#apt-get -y update
+#apt-get -y install linux-kernel-mox
+#/etc/kernel/postinst.d/gen-bootlink
+#
+#apt-get -y install build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros
+#sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
+#EOF
+#
+#chroot $ROOTDIR /bin/bash /root/postinst.sh
+#rm $ROOTDIR/root/postinst.sh
+#
+## cleanup QEMU
+##rm ${ROOTDIR}${QEMU}
+#ENDSCRIPT
 
 # create package
 cd $ROOTDIR
