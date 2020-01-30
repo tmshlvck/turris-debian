@@ -11,6 +11,9 @@
 *.changes
 *.diff.gz
 
+# metapackage recipe
+mox/kernel/*.cfg
+
 # root dirs
 omnia/root
 mox/root
