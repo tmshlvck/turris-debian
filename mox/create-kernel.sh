@@ -40,9 +40,9 @@ make -j $(nproc) deb-pkg LOCALVERSION=-mox
 # crete meta-package
 cd ..
 
-KIP=`ls linux-image-*_arm64.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
-HIP=`ls linux-headers-*_arm64.deb | sort --version-sort | tail -n1`
-KDIP=`ls linux-image-*-dbg_*_arm64.deb | sort --version-sort | tail -n1`
+KIP=`ls linux-image-*_arm64.deb | grep -v -- "-dbg_" | ../../sortkernel.py | tail -n1`
+HIP=`ls linux-headers-*_arm64.deb | ../../sortkernel.py | tail -n1`
+KDIP=`ls linux-image-*-dbg_*_arm64.deb | ../../sortkernel.py | tail -n1`
 
 if ! [ -f $KIP ]; then
 	        echo "Missing file $KIP . Exit."

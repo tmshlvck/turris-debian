@@ -103,10 +103,10 @@ sed -i 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/sys
 # prepare U-Boot bootscript
 $SUDO mkimage -T script -C none -n boot -d files/boot.txt ${ROOTDIR}/boot/boot.scr
 
-# copy omnia-gen-bootlink
-cd $BUILDROOT
-cp files/omnia-gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
-chown root:root $ROOTDIR/etc/kernel/postinst.d/omnia-gen-bootlink
+# copy gen-bootlink
+d $BUILDROOT
+cp files/gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
+chown root:root $ROOTDIR/etc/kernel/postinst.d/gen-bootlink
  
 # prepare directory for scripts
 mkdir -p $ROOTDIR/usr/local/sbin/
@@ -120,30 +120,27 @@ fi
 
 # use already built kernel
 cd $BUILDROOT
-KIP=`ls linux-image-*_armhf.deb | grep -v -- "-dbg_" | sort --version-sort | tail -n1`
-HIP=`ls linux-headers-*_armhf.deb | sort --version-sort | tail -n1`
-$SUDO cp $KIP $HIP $ROOTDIR
 
 # run postinst script in QEMU and cleanup
 
 
-$SUDO bash <<ENDSCRIPT
-cat >$ROOTDIR/root/postinst.sh <<EOF
+$SUDO chroot $ROOTDIR bash <<ENDSCRIPT
 cd /
-dpkg -i $KIP $HIP
-rm -f $KIP $HIP
-/etc/kernel/postinst.d/omnia-gen-bootlink
 apt-get -y update
-apt-get -y install build-essential gcc make git libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools firmware-atheros crda
-sed -i 's/^.\?PermitRootLogin .\+$/PermitRootLogin yes/' /etc/ssh/sshd_config
-EOF
+apt-get -y install gnupg build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools crda
 
-chroot $ROOTDIR /bin/bash /root/postinst.sh
-rm $ROOTDIR/root/postinst.sh
+echo "deb http://cirrus.openavionics.eu/~th/omnia/ buster main" >>/etc/apt/sources.list
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2A1CABB35F7C596
+apt-get -y update
+apt-get -y install linux-kernel-omnia
+#/etc/kernel/postinst.d/gen-bootlink
+
+/etc/kernel/postinst.d/gen-bootlink
+sed -i 's/^.\?PermitRootLogin .\+$/PermitRootLogin yes/' /etc/ssh/sshd_config
+ENDSCRIPT
 
 # cleanup QEMU
-#rm ${ROOTDIR}${QEMU}
-ENDSCRIPT
+$SUDO rm -f ${ROOTDIR}${QEMU}
 
 # create package
 cd $ROOTDIR
@@ -155,5 +152,7 @@ $SUDO mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz
 $SUDO md5sum omnia-medkit-${d}.tar.gz >omnia-medkit-${d}.tar.gz.md5
 
 exit 0
+
+# cleanup rootdir
 $SUDO rm -rf $ROOTDIR
 

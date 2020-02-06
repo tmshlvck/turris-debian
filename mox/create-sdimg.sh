@@ -121,37 +121,29 @@ fi
 
 $SUDO chroot $ROOTDIR /bin/bash <<ENDSCRIPT
 cd /
+apt-get -y update
+apt-get -y install gnupg build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros bridge-utils
+
+echo "deb http://cirrus.openavionics.eu/~th/mox/ buster main" >>/etc/apt/sources.list
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2A1CABB35F7C596
 apt-get -y update
 apt-get -y install linux-kernel-mox
 /etc/kernel/postinst.d/gen-bootlink
 
-apt-get -y install build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros
 sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# temporary hack for buggy kernels
+if ! [ -d /etc/modprobe.d/ ]; then
+  mkdir -p /etc/modprobe.d/
+fi
+cat >/etc/modprobe.d/xhci-blacklist.conf <<EOF
+blacklist xhci-hcd
+blacklist xhci-plat-hcd
+EOF
 ENDSCRIPT
 
 # cleanup QEMU
-#rm ${ROOTDIR}${QEMU}
-
-#
-#$SUDO bash <<ENDSCRIPT
-#cat >$ROOTDIR/root/postinst.sh <<EOF
-#cd /
-#apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2A1CABB35F7C596
-#apt-get -y update
-#apt-get -y install linux-kernel-mox
-#/etc/kernel/postinst.d/gen-bootlink
-#
-#apt-get -y install build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros
-#sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
-#EOF
-#
-#chroot $ROOTDIR /bin/bash /root/postinst.sh
-#rm $ROOTDIR/root/postinst.sh
-#
-## cleanup QEMU
-##rm ${ROOTDIR}${QEMU}
-#ENDSCRIPT
+$SUDO rm -f ${ROOTDIR}${QEMU}
 
 # create package
 cd $ROOTDIR
@@ -163,5 +155,7 @@ $SUDO mv mox-sdimg.tar.gz mox-sdimg-${d}.tar.gz
 $SUDO md5sum mox-sdimg-${d}.tar.gz >mox-sdimg-${d}.tar.gz.md5
 
 exit 0
+
+# cleanup rootdir
 $SUDO rm -rf $ROOTDIR
 
