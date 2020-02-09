@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Requirements install:
+#  apt-get install sudo systemd-container
 
 ROOT=/var/lib/turris-debian
 MAINREPO="https://github.com/tmshlvck/turris-debian.git"
