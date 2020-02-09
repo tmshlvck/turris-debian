@@ -27,13 +27,19 @@ Root password is "turris" and by default a DHCP client runs on WAN
 ports are connected to the same VLAN in the switch chip).
 
 Latest compiled image is here:
-http://aule.elfove.cz/~th/turris-debian/omnia/
+http://cirrus.openavionics.eu/~th/omnia-images/
 
 But... Create your own image. It is easy!
 
 Please note:
 
 There the project Wiki: https://github.com/tmshlvck/turris-debian/wiki
+
+The kernel package is distributed in a new board/image specific repo:
+http://cirrus.openavionics.eu/~th/omnia/
+The definition and the trusted key is already part of the new (02/2020)
+images. But you might need to add it to older image manually along with
+installing the kernel metapackage linux-kernel-omnia.
 
 You can find more information about installation, upstreaming of the
 software, experimental Omnia Debian branch etc. there.
@@ -48,7 +54,13 @@ Root password is "turris".
 
 
 Latest compiled image is here:
-http://aule.elfove.cz/~th/turris-debian/mox/
+http://cirrus.openavionics.eu/~th/mox-images/
 
 But... Create your own image. It is easy!
+
+The kernel package is distributed in a new board/image specific repo:
+http://cirrus.openavionics.eu/~th/mox/
+The definition and the trusted key is already part of the new (02/2020)
+images. But you might need to add it to older image manually along with
+installing the kernel metapackage linux-kernel-mox.
 
