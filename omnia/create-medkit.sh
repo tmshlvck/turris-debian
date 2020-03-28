@@ -3,13 +3,9 @@
 # by Tomas Hlavacek (tmshlvck@gmail.com)
 #
 # prerequisities - Debian packages:
-# debootstrap
-# qemu-user
-# qemu-user-static
-# git
-# gcc-arm-linux-gnueabihf
-# devscripts
-# kernel-package
+# apt-get install debootstrap qemu-user qemu-user-static git devscripts kernel-package 	u-boot-tools
+#
+# optional: either own ARM cross-compiler or package gcc-arm-linux-gnueabihf
 #
 # $SUDO || root privileges
 #
@@ -22,8 +18,6 @@ PASSWORD="turris"
 BUILDROOT=`pwd`
 ROOTDIR="$BUILDROOT/root"
 
-SCHNAPPSREPO="https://gitlab.labs.nic.cz/turris/misc.git"
-SCHNAPPSBIN="schnapps/schnapps.sh"
 
 
 

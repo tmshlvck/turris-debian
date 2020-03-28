@@ -3,16 +3,13 @@
 # by Tomas Hlavacek (tmshlvck@gmail.com)
 #
 # prerequisities - Debian packages:
-# git
-# gcc-arm-linux-gnueabihf
-# devscripts
-# kernel-package
+# apt-get install git devscripts kernel-package libssl-dev equivs ncurses-dev
 #
 
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabihf-
 
-cd kernel
+cd kernel/
 
 if [ -f linux/.config ] && [ -f linux/arch/arm/configs/omnia_defconfig ]; then
 	if ! diff ../files/omnia_defconfig linux/.config >/dev/null; then
