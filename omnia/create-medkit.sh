@@ -75,6 +75,9 @@ echo "$HOSTNAME" >$ROOTDIR/etc/hostname
 cp files/interfaces $ROOTDIR/etc/network/interfaces
 chown root:root $ROOTDIR/etc/network/interfaces
 
+cp files/fw_env.config $ROOTDIR/etc/
+chown root:root $ROOTDIR/etc/fw_env.config
+
 cat >$ROOTDIR/etc/apt/sources.list <<EOF
 deb $MIRROR $DEBVER main non-free
 deb http://security.debian.org/ $DEBVER/updates main non-free
@@ -121,7 +124,7 @@ cd $BUILDROOT
 $SUDO chroot $ROOTDIR bash <<ENDSCRIPT
 cd /
 apt-get -y update
-apt-get -y install gnupg build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools crda
+apt-get -y install gnupg build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools crda u-boot-tools mtd-utils
 
 echo "deb http://cirrus.openavionics.eu/~th/omnia/ buster main" >>/etc/apt/sources.list
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2A1CABB35F7C596
