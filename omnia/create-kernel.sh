@@ -21,6 +21,15 @@ if [ -f linux/.config ] && [ -f linux/arch/arm/configs/omnia_defconfig ]; then
 fi
 cp ../files/omnia_defconfig linux/arch/arm/configs
 cd linux
+if [ -f .version ]; then
+	cp .version ../
+fi
+make mrproper
+if [ -f ../.version ]; then
+	cp ../.version .
+	rm -f ../.version
+fi
+
 make omnia_defconfig
 
 export DEB_HOST_ARCH=armhf
