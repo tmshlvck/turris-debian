@@ -10,9 +10,10 @@ push () {
 	rsync -v -e ssh $1 $USER@$HOST:$2
 }
 
-
-push 'omnia-medkit-*.tar.gz' $REMOTE_IMG_DIR
-push 'omnia-medkit-*.tar.gz.md5' $REMOTE_IMG_DIR
+if [ "$1" = "--all" ]; then
+  push 'omnia-medkit-*.tar.gz' $REMOTE_IMG_DIR
+  push 'omnia-medkit-*.tar.gz.md5' $REMOTE_IMG_DIR
+fi
 
 push './kernel/*.deb' $REMOTE_TMP
 
