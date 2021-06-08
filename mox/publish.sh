@@ -3,7 +3,7 @@
 USER="th"
 HOST="cirrus.openavionics.eu"
 REMOTE_IMG_DIR="~/public_html/mox-images/"
-REMOTE_TMP="~/tmp_mox/"
+REMOTE_TMP="~/aptly/mox/"
 
 
 push () {

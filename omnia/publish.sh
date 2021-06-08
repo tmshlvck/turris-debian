@@ -3,7 +3,7 @@
 USER="th"
 HOST="cirrus.openavionics.eu"
 REMOTE_IMG_DIR="~/public_html/omnia-images/"
-REMOTE_TMP="~/tmp_omnia/"
+REMOTE_TMP="~/aptly/omnia/"
 
 
 push () {
