@@ -10,8 +10,11 @@
 # $SUDO || root privileges
 #
 
+echo "Not testedi yet. Not supported at this time. Sorry!"
+exit -1
+
 MIRROR="http://debian.ignum.cz/debian/"
-DEBVER="buster"
+DEBVER="bullseye"
 HOSTNAME="turris"
 PASSWORD="turris"
 
@@ -123,12 +126,6 @@ $SUDO chroot $ROOTDIR /bin/bash <<ENDSCRIPT
 cd /
 apt-get -y update
 apt-get -y install gnupg build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros bridge-utils
-
-echo "deb http://cirrus.openavionics.eu/~th/mox/ buster main" >>/etc/apt/sources.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2A1CABB35F7C596
-apt-get -y update
-apt-get -y install linux-kernel-mox
-/etc/kernel/postinst.d/gen-bootlink
 
 sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
 
