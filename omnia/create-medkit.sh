@@ -1,22 +1,15 @@
 #!/bin/bash
 #
-# by Tomas Hlavacek (tmshlvck@gmail.com)
-#
-# prerequisities - Debian packages:
-# apt-get install debootstrap qemu-user qemu-user-static git devscripts kernel-package 	u-boot-tools
-#
-# optional: either own ARM cross-compiler or package gcc-arm-linux-gnueabihf
-#
-# $SUDO || root privileges
-#
+# Copyright (C) 2016-2021 Tomas Hlavacek (tmshlvck@gmail.com)
+
 
 MIRROR="http://debian.ignum.cz/debian/"
-DEBVER="buster"
+DEBVER="bullseye"
 HOSTNAME="turris"
 PASSWORD="turris"
 
 BUILDROOT=`pwd`
-ROOTDIR="$BUILDROOT/root"
+ROOTDIR="/turrisroot"
 
 
 
@@ -31,39 +24,14 @@ if [ -z "${ROOTDIR}" ]; then
 	echo "Wrong ROOTDIR: ${ROOTDIR}"
 	exit -1
 fi
-QEMU=`which qemu-arm-static`
-if ! [ -f ${QEMU} ]; then
-	echo "QEMU $QEMU not found. Stop."
-	exit -1
-fi
 
 $SUDO bash <<ENDSCRIPT
 rm -rf $ROOTDIR
 mkdir $ROOTDIR
 
-# debootstrap stage1
-debootstrap --arch armhf --foreign $DEBVER $ROOTDIR $MIRROR
+qemu-debootstrap --arch armhf $DEBVER $ROOTDIR $MIRROR
 if [[ $? != 0 ]]; then
 	print "Debootstrap failed. Exit."
-	exit -1
-fi
-
-# prepare QEMU
-cp $QEMU $ROOTDIR/usr/bin/
-#update-binfmts --enable qemu-arm
-
-# deboostrap stage2
-DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
- LC_ALL=C LANGUAGE=C LANG=C chroot $ROOTDIR /debootstrap/debootstrap --second-stage
-if [[ $? != 0 ]]; then
-	print "Debootstrap failed. Exit."
-	exit -1
-fi
-
-DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
- LC_ALL=C LANGUAGE=C LANG=C chroot $ROOTDIR dpkg --configure -a
-if [[ $? != 0 ]]; then
-	print "dpkg --configure failed. Exit."
 	exit -1
 fi
 
@@ -80,9 +48,8 @@ chown root:root $ROOTDIR/etc/fw_env.config
 
 cat >$ROOTDIR/etc/apt/sources.list <<EOF
 deb $MIRROR $DEBVER main non-free
-deb http://security.debian.org/ $DEBVER/updates main non-free
+#deb http://security.debian.org/ $DEBVER/updates main non-free
 EOF
-
 
 cat >$ROOTDIR/etc/rc.local <<EOF
 #!/bin/sh -e
@@ -92,57 +59,55 @@ EOF
 
 cat >$ROOTDIR/etc/fstab <<EOF
 /dev/mmcblk0p1 / btrfs rw,ssd,subvol=@,noatime,nodiratime		0	0
+tmpfs          /tmp       tmpfs   defaults,noatime,mode=1777            0       0
+tmpfs          /var/tmp   tmpfs   defaults,noatime,mode=1777            0       0
 EOF
 
 # enable watchdog
 sed -i 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
 
-# prepare U-Boot bootscript
-$SUDO mkimage -T script -C none -n boot -d files/boot.txt ${ROOTDIR}/boot/boot.scr
+# create static DTBs
+cp $BUILDROOT/files/armada-385-turris-omnia-phy.dtb $ROOTDIR/boot/
+cp $BUILDROOT/files/armada-385-turris-omnia-sfp.dtb $ROOTDIR/boot/ 
 
-# copy gen-bootlink
-d $BUILDROOT
-cp files/gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
-chown root:root $ROOTDIR/etc/kernel/postinst.d/gen-bootlink
+# copy genbootscr
+cd $BUILDROOT
+cp files/genbootscr $ROOTDIR/etc/kernel/postinst.d/
+chown root:root $ROOTDIR/etc/kernel/postinst.d/genbootscr
  
 # prepare directory for scripts
 mkdir -p $ROOTDIR/usr/local/sbin/
 ENDSCRIPT
 
 if [[ $? != 0 ]]; then
-	print "Sudoed script failed. Exit."
+	print "Ssudoed script failed. Exit."
 	exit -1
 fi
-
-
-# use already built kernel
-cd $BUILDROOT
-
-# run postinst script in QEMU and cleanup
 
 
 $SUDO chroot $ROOTDIR bash <<ENDSCRIPT
 cd /
 apt-get -y update
-apt-get -y install gnupg build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros libnl-3-dev linux-libc-dev libnl-genl-3-dev python ssh bridge-utils btrfs-tools i2c-tools crda u-boot-tools mtd-utils
+apt-get install 
+apt-get -y install u-boot-tools
+apt-get -y install linux-image-armmp
+apt-get -y install ssh btrfs-progs i2c-tools firmware-atheros mtd-utils crda bridge-utils
 
-echo "deb http://cirrus.openavionics.eu/~th/omnia/ buster main" >>/etc/apt/sources.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2A1CABB35F7C596
-apt-get -y update
-apt-get -y install linux-kernel-omnia
-#/etc/kernel/postinst.d/gen-bootlink
+/etc/kernel/postinst.d/genbootscr
 
-/etc/kernel/postinst.d/gen-bootlink
 sed -i 's/^.\?PermitRootLogin .\+$/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+echo "spi_nor" >>/etc/modules
 ENDSCRIPT
 
 # cleanup QEMU
-$SUDO rm -f ${ROOTDIR}${QEMU}
+#$SUDO rm -f ${ROOTDIR}${QEMU}
 
 # create package
 cd $ROOTDIR
 $SUDO rm -f ../omnia-medkit.tar.gz
 $SUDO tar zcf ../omnia-medkit.tar.gz *
+$SUDO mv ../omnia-medkit.tar.gz ${BUILDROOT}
 cd $BUILDROOT
 d=`date "+%Y%m%d"`
 $SUDO mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz

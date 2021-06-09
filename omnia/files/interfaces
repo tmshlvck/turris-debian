@@ -9,6 +9,9 @@ iface lo inet loopback
 auto eth0
 iface eth0 inet manual
 
+auto eth1
+iface eth1 inet manual
+
 auto br0
 iface br0 inet static
 	bridge_ports lan0 lan1 lan2 lan3 lan4
@@ -20,6 +23,6 @@ iface br0 inet static
 	bridge_fd 0
 
 # WAN
-#auto eth1
-#iface eth1 inet dhcp
+#auto eth2
+#iface eth2 inet dhcp
 
