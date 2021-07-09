@@ -30,7 +30,7 @@ rm -rf $ROOTDIR
 mkdir $ROOTDIR
 
 qemu-debootstrap --arch armhf $DEBVER $ROOTDIR $MIRROR
-if [[ $? != 0 ]]; then
+if [[ \$? != 0 ]]; then
 	print "Debootstrap failed. Exit."
 	exit -1
 fi
@@ -72,8 +72,8 @@ cp $BUILDROOT/files/armada-385-turris-omnia-sfp.dtb $ROOTDIR/boot/
 
 # copy genbootscr
 cd $BUILDROOT
-cp files/genbootscr $ROOTDIR/etc/kernel/postinst.d/
-chown root:root $ROOTDIR/etc/kernel/postinst.d/genbootscr
+cp files/genbootscr $ROOTDIR/etc/kernel/postinst.d/z99-genbootscr
+chown root:root $ROOTDIR/etc/kernel/postinst.d/z99-genbootscr
  
 # prepare directory for scripts
 mkdir -p $ROOTDIR/usr/local/sbin/
@@ -88,12 +88,9 @@ fi
 $SUDO chroot $ROOTDIR bash <<ENDSCRIPT
 cd /
 apt-get -y update
-apt-get install 
 apt-get -y install u-boot-tools
 apt-get -y install linux-image-armmp
 apt-get -y install ssh btrfs-progs i2c-tools firmware-atheros mtd-utils crda bridge-utils
-
-/etc/kernel/postinst.d/genbootscr
 
 sed -i 's/^.\?PermitRootLogin .\+$/PermitRootLogin yes/' /etc/ssh/sshd_config
 
