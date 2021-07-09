@@ -10,8 +10,8 @@
 # $SUDO || root privileges
 #
 
-echo "Not testedi yet. Not supported at this time. Sorry!"
-exit -1
+#echo "Not testedi yet. Not supported at this time. Sorry!"
+#exit -1
 
 MIRROR="http://debian.ignum.cz/debian/"
 DEBVER="bullseye"
@@ -19,7 +19,7 @@ HOSTNAME="turris"
 PASSWORD="turris"
 
 BUILDROOT=`pwd`
-ROOTDIR="$BUILDROOT/root"
+ROOTDIR="/turrisroot"
 
 
 SUDO='/usr/bin/sudo'
@@ -43,27 +43,9 @@ rm -rf $ROOTDIR
 mkdir $ROOTDIR
 
 # debootstrap stage1
-debootstrap --arch arm64 --foreign $DEBVER $ROOTDIR $MIRROR
-if [[ $? != 0 ]]; then
+qemu-debootstrap --arch arm64 $DEBVER $ROOTDIR $MIRROR
+if [[ \$? != 0 ]]; then
 	print "Debootstrap failed. Exit."
-	exit -1
-fi
-
-# prepare QEMU
-cp $QEMU $ROOTDIR/usr/bin/
-
-# deboostrap stage2
-DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
- LC_ALL=C LANGUAGE=C LANG=C chroot $ROOTDIR /debootstrap/debootstrap --second-stage
-if [[ $? != 0 ]]; then
-	print "Debootstrap failed. Exit."
-	exit -1
-fi
-
-DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
- LC_ALL=C LANGUAGE=C LANG=C chroot $ROOTDIR dpkg --configure -a
-if [[ $? != 0 ]]; then
-	print "dpkg --configure failed. Exit."
 	exit -1
 fi
 
@@ -92,26 +74,24 @@ EOF
 
 cat >$ROOTDIR/etc/fstab <<EOF
 /dev/mmcblk0p1 / ext4 rw,noatime,nodiratime		0	0
+tmpfs          /tmp       tmpfs   defaults,noatime,mode=1777            0       0
+tmpfs          /var/tmp   tmpfs   defaults,noatime,mode=1777            0       0
 EOF
 
 # enable watchdog
 sed -ir 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
 
-# prepare U-Boot bootscript
-mkimage -T script -C none -n boot -d files/boot.txt ${ROOTDIR}/boot/boot.scr
-
-# copy gen-bootlink
+# copy genbootscr
 cd $BUILDROOT
-cp files/gen-bootlink $ROOTDIR/etc/kernel/postinst.d/
-chown root:root $ROOTDIR/etc/kernel/postinst.d/gen-bootlink
+cp files/genbootscr $ROOTDIR/etc/kernel/postinst.d/z99-genbootscr
+chown root:root $ROOTDIR/etc/kernel/postinst.d/z99-genbootscr
 
-# copy Marvell firmware
-cd $BUILDROOT
-mkdir -p $ROOTDIR/lib/firmware/mrvl
-cp files/sd8997_uapsta.bin $ROOTDIR/lib/firmware/mrvl
+## copy Marvell firmware
+#cd $BUILDROOT
+#mkdir -p $ROOTDIR/lib/firmware/mrvl
+#cp files/sd8997_uapsta.bin $ROOTDIR/lib/firmware/mrvl
  
-# prepare directory for scripts
-mkdir -p $ROOTDIR/usr/local/sbin/
+echo "moxtet" >>/etc/modules
 ENDSCRIPT
 
 if [[ $? != 0 ]]; then
@@ -120,32 +100,33 @@ if [[ $? != 0 ]]; then
 fi
 
 
-# run postinst script in QEMU and cleanup
-
 $SUDO chroot $ROOTDIR /bin/bash <<ENDSCRIPT
 cd /
 apt-get -y update
-apt-get -y install gnupg build-essential gcc make git python ssh btrfs-tools i2c-tools firmware-atheros bridge-utils
+apt-get -y install u-boot-tools
+apt-get -y install linux-image-arm64
+apt-get -y install ssh i2c-tools firmware-atheros crda bridge-utils
 
 sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
 
-# temporary hack for buggy kernels
-if ! [ -d /etc/modprobe.d/ ]; then
-  mkdir -p /etc/modprobe.d/
-fi
-cat >/etc/modprobe.d/xhci-blacklist.conf <<EOF
-blacklist xhci-hcd
-blacklist xhci-plat-hcd
-EOF
+## temporary hack for buggy kernels
+#if ! [ -d /etc/modprobe.d/ ]; then
+#  mkdir -p /etc/modprobe.d/
+#fi
+#cat >/etc/modprobe.d/xhci-blacklist.conf <<EOF
+#blacklist xhci-hcd
+#blacklist xhci-plat-hcd
+#EOF
 ENDSCRIPT
 
 # cleanup QEMU
-$SUDO rm -f ${ROOTDIR}${QEMU}
+#$SUDO rm -f ${ROOTDIR}${QEMU}
 
 # create package
 cd $ROOTDIR
 $SUDO rm -f ../mox-sdimg.tar.gz
 $SUDO tar zcf ../mox-sdimg.tar.gz *
+$SUDO mv ../mox-sdimg.tar.gz ${BUILDROOT}
 cd $BUILDROOT
 d=`date "+%Y%m%d"`
 $SUDO mv mox-sdimg.tar.gz mox-sdimg-${d}.tar.gz
