@@ -17,13 +17,13 @@ by `debootstrap`.
 
 You can download ready-made images for **Turris Omnia**:
 
-* Debian Buster for Turris Omnia: https://krtek.taaa.eu/~th/omnia-images/buster/
 * Debian Bullseye for Turris Omnia: https://krtek.taaa.eu/~th/omnia-images/bullseye/
+* (oldstable) Debian Buster for Turris Omnia: https://krtek.taaa.eu/~th/omnia-images/buster/
 
 And the images for **Turris MOX** are here:
 
-* Debian Buster for Turris MOX: https://krtek.taaa.eu/~th/mox-images/
-* Debian Bullseye for Turris MOX: TODO
+* Debian Bullseye for Turris MOX: https://krtek.taaa.eu/~th/mox-images/bullseye/
+* (oldstable) Debian Buster for Turris MOX: https://krtek.taaa.eu/~th/mox-images/buster/
 
 ### Turris Omnia Installation
 
