@@ -74,9 +74,6 @@ cp $BUILDROOT/files/armada-385-turris-omnia-sfp.dtb $ROOTDIR/boot/
 cd $BUILDROOT
 cp files/genbootscr $ROOTDIR/etc/kernel/postinst.d/z99-genbootscr
 chown root:root $ROOTDIR/etc/kernel/postinst.d/z99-genbootscr
- 
-# prepare directory for scripts
-mkdir -p $ROOTDIR/usr/local/sbin/
 ENDSCRIPT
 
 if [[ $? != 0 ]]; then
@@ -88,7 +85,12 @@ fi
 $SUDO chroot $ROOTDIR bash <<ENDSCRIPT
 cd /
 apt-get -y update
-apt-get -y install u-boot-tools
+apt-get -y install u-boot-tools initramfs-tools xz-utils
+
+# TODO: Install a package with genbootscr and script to do the following initramfs hack
+# change initrd compressions to XZ
+sed -r -i 's/^COMPRESS=.*/COMPRESS=xz/' /etc/initramfs-tools/initramfs.conf
+
 apt-get -y install linux-image-armmp
 apt-get -y install ssh btrfs-progs i2c-tools firmware-atheros mtd-utils crda bridge-utils
 
