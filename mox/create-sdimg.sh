@@ -1,17 +1,6 @@
 #!/bin/bash
 #
-# by Tomas Hlavacek (tmshlvck@gmail.com)
-#
-# prerequisities - Debian packages:
-# apt-get install debootstrap qemu-user qemu-user-static git devscripts u-boot-tools
-#
-# Linaro GCC 7.3 & toolchain int /opt
-#
-# $SUDO || root privileges
-#
-
-#echo "Not testedi yet. Not supported at this time. Sorry!"
-#exit -1
+# Copyright (C) 2016-2021 Tomas Hlavacek (tmshlvck@gmail.com)
 
 MIRROR="http://debian.ignum.cz/debian/"
 DEBVER="bullseye"
@@ -20,6 +9,7 @@ PASSWORD="turris"
 
 BUILDROOT=`pwd`
 ROOTDIR="/turrisroot"
+
 
 
 SUDO='/usr/bin/sudo'
@@ -91,7 +81,7 @@ chown root:root $ROOTDIR/etc/kernel/postinst.d/z99-genbootscr
 #mkdir -p $ROOTDIR/lib/firmware/mrvl
 #cp files/sd8997_uapsta.bin $ROOTDIR/lib/firmware/mrvl
  
-echo "moxtet" >>/etc/modules
+echo "moxtet" >>$ROOTDIR/etc/modules
 ENDSCRIPT
 
 if [[ $? != 0 ]]; then
@@ -103,20 +93,16 @@ fi
 $SUDO chroot $ROOTDIR /bin/bash <<ENDSCRIPT
 cd /
 apt-get -y update
-apt-get -y install u-boot-tools
+apt-get -y install u-boot-tools initramfs-tools xz-utils
+
+# TODO: Install a package with genbootscr and script to do the following initramfs hack
+# change initrd compressions to XZ
+sed -r -i 's/^COMPRESS=.*/COMPRESS=xz/' /etc/initramfs-tools/initramfs.conf
+
 apt-get -y install linux-image-arm64
 apt-get -y install ssh i2c-tools firmware-atheros crda bridge-utils
 
 sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
-
-## temporary hack for buggy kernels
-#if ! [ -d /etc/modprobe.d/ ]; then
-#  mkdir -p /etc/modprobe.d/
-#fi
-#cat >/etc/modprobe.d/xhci-blacklist.conf <<EOF
-#blacklist xhci-hcd
-#blacklist xhci-plat-hcd
-#EOF
 ENDSCRIPT
 
 # cleanup QEMU
