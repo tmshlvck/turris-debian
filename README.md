@@ -15,15 +15,8 @@ by `debootstrap`.
 
 ## Images and usage
 
-You can download ready-made images for **Turris Omnia**:
-
-* Debian Bullseye for Turris Omnia: https://krtek.taaa.eu/~th/omnia-images/bullseye/
-* (oldstable) Debian Buster for Turris Omnia: https://krtek.taaa.eu/~th/omnia-images/buster/
-
-And the images for **Turris MOX** are here:
-
-* Debian Bullseye for Turris MOX: https://krtek.taaa.eu/~th/mox-images/bullseye/
-* (oldstable) Debian Buster for Turris MOX: https://krtek.taaa.eu/~th/mox-images/buster/
+You can download ready-made images for both **Turris Omnia** and **Turris MOX**
+from latest release: https://github.com/tmshlvck/turris-debian/releases
 
 ### Turris Omnia Installation
 
@@ -111,7 +104,7 @@ SD creation method (assuming that the SD card is accessible as /dev/mmcblk0):
 With fdisk create partition table or delete all existing partitions and create one new 'Linux' partition over the entire disk as partition 1.
 
 ```
-# mkfs.btrfs /dev/mmcblk0p1
+# mkfs.ext4 /dev/mmcblk0p1
 # cd /tmp
 # wget https://krtek.taaa.eu/~th/mox-images/mox-sdimg-20200130.tar.gz
 # mount /dev/mmcblk0p1 /mnt
@@ -121,6 +114,21 @@ With fdisk create partition table or delete all existing partitions and create o
 # rm /tmp/mox-sdimg-20200130.tar.gz
 # umount /mnt
 # sync
+```
+
+You can modify `etc/network/interfaces` to set the desired IP address for ethernet
+interface on the MOX A module (eth0) or LAN bridge (br0), which has to be
+uncommented if the proper switch MOX module is connected.
+
+If no changes are made to network configuration and MOX is booted the eth0
+is by default configured with IP `192.168.0.1/24`. Use the following
+procedure to connect to MOX over eth0 (MOX side), assuming your worstation
+is connected with eth0 (workstation side):
+
+```
+ip link set up dev eth0
+ip addr add 192.168.0.20/24 dev eth0
+ssh root@192.168.0.1
 ```
 
 ## Vagrant VM preparation
