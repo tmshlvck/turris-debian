@@ -5,11 +5,22 @@ source-directory /etc/network/interfaces.d
 auto lo
 iface lo inet loopback
 
-# LAN
+# WAN
 auto eth0
-iface eth0 inet manual
+iface eth0 inet static
+	address 192.168.0.1
+	netmask 255.255.255.0
 
-auto br0
-iface br0 inet dhcp
-	bridge_ports eth0
+## LAN
+#auto eth1
+#iface eth1 inet manual
+#
+#auto br0
+#iface br0 inet static
+#	bridge_ports lan1 lan2 lan3 lan4
+#	address 192.168.1.1
+#	netmask 255.255.255.0
+#	bridge_stp off
+#	bridge_waitport 0
+#	bridge_fd 0
 
