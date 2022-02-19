@@ -1,8 +1,36 @@
 #!/bin/bash
 
-if [ -n "${1}" ]; then
-  ROOT="$1"
-else
+help () {
+  echo "genbootscr.sh\n\n  -h|--help - print this help\n  -r|--root </dev/blockdevice> -- force root partition"
+}
+
+POSITIONAL_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -r|--root)
+      ROOT="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -h|--help)
+      print_help
+      shift # past argument
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
+  esac
+done
+
+set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+echo "genbootscr arguments (ignored): $*"
+
+if [ -z "${ROOT}" ]; then
   ROOT=`mount | egrep "^[^ ]+ on / type" | sed -r 's/^([^ ]+) on \/ type .*/\1/'`
 fi
 echo "Root device: ${ROOT}"
@@ -39,8 +67,8 @@ if [ ! -f "${DTSFP}" ]; then
   DTSFP="/boot/armada-385-turris-omnia-sfp.dtb"
 fi
 
-echo "Kernel Image: $KERNEL_IMAGE"
-echo "InitRD: $INITRD"
+echo "Selected kernel Image: $KERNEL_IMAGE"
+echo "Searching InitRD: $INITRD"
 
 cat >/boot/boot.txt <<EOF
 setenv bootargs "earlyprintk console=\$console pcie_aspm=off root=$ROOT rootdelay=2 rootflags=subvol=@,commit=5 rw"
