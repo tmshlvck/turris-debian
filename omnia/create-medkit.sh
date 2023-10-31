@@ -3,8 +3,8 @@
 # Copyright (C) 2016-2021 Tomas Hlavacek (tmshlvck@gmail.com)
 
 
-MIRROR="http://debian.ignum.cz/debian/"
-DEBVER="bullseye"
+MIRROR="http://ftp.ch.debian.org/debian/"
+DEBVER="stable"
 HOSTNAME="turris"
 PASSWORD="turris"
 
@@ -47,8 +47,8 @@ cp files/fw_env.config $ROOTDIR/etc/
 chown root:root $ROOTDIR/etc/fw_env.config
 
 cat >$ROOTDIR/etc/apt/sources.list <<EOF
-deb $MIRROR $DEBVER main non-free
-#deb http://security.debian.org/ $DEBVER/updates main non-free
+deb $MIRROR $DEBVER main non-free non-free-firmware
+deb http://security.debian.org/ $DEBVER-security/updates main non-free non-free-firmware
 EOF
 
 cat >$ROOTDIR/etc/rc.local <<EOF
@@ -92,7 +92,7 @@ apt-get -y install u-boot-tools initramfs-tools xz-utils
 sed -r -i 's/^COMPRESS=.*/COMPRESS=xz/' /etc/initramfs-tools/initramfs.conf
 
 apt-get -y install linux-image-armmp
-apt-get -y install ssh btrfs-progs i2c-tools firmware-atheros mtd-utils crda bridge-utils
+apt-get -y install ssh btrfs-progs i2c-tools firmware-atheros mtd-utils bridge-utils
 
 sed -i 's/^.\?PermitRootLogin .\+$/PermitRootLogin yes/' /etc/ssh/sshd_config
 

@@ -2,8 +2,8 @@
 #
 # Copyright (C) 2016-2021 Tomas Hlavacek (tmshlvck@gmail.com)
 
-MIRROR="http://debian.ignum.cz/debian/"
-DEBVER="bullseye"
+MIRROR="http://ftp.ch.debian.org/debian/"
+DEBVER="stable"
 HOSTNAME="turris"
 PASSWORD="turris"
 
@@ -35,7 +35,7 @@ mkdir $ROOTDIR
 # debootstrap stage1
 qemu-debootstrap --arch arm64 $DEBVER $ROOTDIR $MIRROR
 if [[ \$? != 0 ]]; then
-	print "Debootstrap failed. Exit."
+	echo "Debootstrap failed. Exit."
 	exit -1
 fi
 
@@ -51,8 +51,8 @@ cp files/interfaces $ROOTDIR/etc/network/interfaces
 chown root:root $ROOTDIR/etc/network/interfaces
 
 cat >$ROOTDIR/etc/apt/sources.list <<EOF
-deb $MIRROR $DEBVER main non-free
-deb http://security.debian.org/ $DEBVER/updates main non-free
+deb $MIRROR $DEBVER main non-free non-free-firmware
+deb http://security.debian.org/ $DEBVER-security/updates main non-free non-free-firmware
 EOF
 
 
@@ -85,7 +85,7 @@ echo "moxtet" >>$ROOTDIR/etc/modules
 ENDSCRIPT
 
 if [[ $? != 0 ]]; then
-	print "Sudoed script failed. Exit."
+	echo "Sudoed script failed. Exit."
 	exit -1
 fi
 
@@ -100,7 +100,7 @@ apt-get -y install u-boot-tools initramfs-tools xz-utils
 sed -r -i 's/^COMPRESS=.*/COMPRESS=xz/' /etc/initramfs-tools/initramfs.conf
 
 apt-get -y install linux-image-arm64
-apt-get -y install ssh i2c-tools firmware-atheros crda bridge-utils
+apt-get -y install ssh i2c-tools firmware-atheros bridge-utils
 
 sed -ir 's/^[#]*PermitRootLogin.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
 ENDSCRIPT
