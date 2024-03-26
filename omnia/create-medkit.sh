@@ -66,10 +66,6 @@ EOF
 # enable watchdog
 sed -i 's/#RuntimeWatchdogSec=0/RuntimeWatchdogSec=30/' $ROOTDIR/etc/systemd/system.conf
 
-# create static DTBs
-cp $BUILDROOT/files/armada-385-turris-omnia-phy.dtb $ROOTDIR/boot/
-cp $BUILDROOT/files/armada-385-turris-omnia-sfp.dtb $ROOTDIR/boot/ 
-
 # copy genbootscr
 cd $BUILDROOT
 cp files/genbootscr $ROOTDIR/etc/kernel/postinst.d/z99-genbootscr
@@ -97,10 +93,11 @@ apt-get -y install ssh btrfs-progs i2c-tools firmware-atheros mtd-utils bridge-u
 sed -i 's/^.\?PermitRootLogin .\+$/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 echo "spi_nor" >>/etc/modules
-ENDSCRIPT
 
-# cleanup QEMU
-#$SUDO rm -f ${ROOTDIR}${QEMU}
+/etc/kernel/postinst.d/z99-genbootscr -r /dev/sda1
+mv /boot/boot.scr /boot/boot.scr-sda1
+/etc/kernel/postinst.d/z99-genbootscr -r /dev/mmcblk0p1
+ENDSCRIPT
 
 # create package
 cd $ROOTDIR
@@ -111,8 +108,6 @@ cd $BUILDROOT
 d=`date "+%Y%m%d"`
 $SUDO mv omnia-medkit.tar.gz omnia-medkit-${d}.tar.gz
 $SUDO md5sum omnia-medkit-${d}.tar.gz >omnia-medkit-${d}.tar.gz.md5
-
-exit 0
 
 # cleanup rootdir
 $SUDO rm -rf $ROOTDIR

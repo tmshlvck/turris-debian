@@ -1,6 +1,6 @@
 #!/bin/bash
 
-help () {
+print_help () {
   echo "genbootscr.sh\n\n  -h|--help - print this help\n  -r|--root </dev/blockdevice> -- force root partition"
 }
 
@@ -14,7 +14,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h|--help)
       print_help
-      shift # past argument
+      exit 1
       ;;
     -*|--*)
       echo "Unknown option $1"
@@ -57,15 +57,7 @@ if [ -z "${KERNEL_VER}" ]; then
 fi
 
 INITRD="/boot/initrd.img-${KERNEL_VER}"
-
-DTPHY="/usr/lib/linux-image-${KERNEL_VER}/armada-385-turris-omnia-phy.dtb"
-DTSFP="/usr/lib/linux-image-${KERNEL_VER}/armada-385-turris-omnia-sfp.dtb"
-if [ ! -f "${DTPHY}" ]; then
-  DTPHY="/boot/armada-385-turris-omnia-phy.dtb"
-fi
-if [ ! -f "${DTSFP}" ]; then
-  DTSFP="/boot/armada-385-turris-omnia-sfp.dtb"
-fi
+DT="/usr/lib/linux-image-${KERNEL_VER}/armada-385-turris-omnia.dtb"
 
 echo "Selected kernel Image: $KERNEL_IMAGE"
 echo "Searching InitRD: $INITRD"
@@ -74,24 +66,24 @@ cat >/boot/boot.txt <<EOF
 setenv bootargs "earlyprintk console=\$console pcie_aspm=off root=$ROOT rootdelay=2 rootflags=subvol=@,commit=5 rw"
 setenv omnia_boot_prep '${SCRIPT_PREPEND}'
 setenv omnia_boot_lk 'load $BOOTDEV \${kernel_addr_r} /@${KERNEL_IMAGE}'
-setenv omnia_boot_ldt_phy 'load $BOOTDEV \${fdt_addr_r} /@$DTPHY'
-setenv omnia_boot_ldt_sfp 'load $BOOTDEV \${fdt_addr_r} /@$DTSFP'
-setenv omnia_fixup_mac0 'setexpr fmac0 gsub : " " \$ethaddr; fdt resize; fdt set /soc/internal-regs/ethernet@70000 local-mac-address "[\${fmac0}]"'
-setenv omnia_fixup_mac1 'setexpr fmac1 gsub : " " \$eth1addr; fdt resize; fdt set /soc/internal-regs/ethernet@30000 local-mac-address "[\${fmac1}]"'
-setenv omnia_fixup_mac2 'setexpr fmac2 gsub : " " \$eth2addr; fdt resize; fdt set /soc/internal-regs/ethernet@34000 local-mac-address "[\${fmac2}]"'
+setenv omnia_boot_ldt 'load $BOOTDEV \${fdt_addr_r} /@$DT'
+setenv omnia_fixup_sfp 'if gpio input gpio@71_4; then echo SFP; fdt set /soc/internal-regs/mdio@72004/ethernet-phy@1 status "disabled"; fdt set /sfp status "okay"; fdt set /soc/internal-regs/ethernet@34000 managed "in-band-status"; fdt rm /soc/internal-regs/ethernet@34000 phys; fdt rm /soc/internal-regs/ethernet@34000 phy-handle; else echo PHY; fi;'
+setenv omnia_fixup_mac0 'setexpr fmac0 gsub : " " \$ethaddr; fdt set /soc/internal-regs/ethernet@70000 local-mac-address "[\${fmac0}]"'
+setenv omnia_fixup_mac1 'setexpr fmac1 gsub : " " \$eth1addr; fdt set /soc/internal-regs/ethernet@30000 local-mac-address "[\${fmac1}]"'
+setenv omnia_fixup_mac2 'setexpr fmac2 gsub : " " \$eth2addr; fdt set /soc/internal-regs/ethernet@34000 local-mac-address "[\${fmac2}]"'
 EOF
 
 if [ -f "${INITRD}" ]; then
 cat >>/boot/boot.txt <<EOF
 setenv omnia_boot_lrd 'load $BOOTDEV \${ramdisk_addr_r} /@${INITRD}'
 setenv omnia_boot_brd 'bootz \${kernel_addr_r} \${ramdisk_addr_r}:0x\${filesize} \${fdt_addr_r};'
-setenv omnia_boot 'run omnia_boot_prep; run omnia_boot_lk; if gpio input gpio@71_4; then echo SFP; run omnia_boot_ldt_sfp; else echo PHY; run omnia_boot_ldt_phy; fi; fdt addr \${fdt_addr_r}; run omnia_fixup_mac0; run omnia_fixup_mac1; run omnia_fixup_mac2; run omnia_boot_lrd; run omnia_boot_brd'
+setenv omnia_boot 'run omnia_boot_prep; run omnia_boot_lk; run omnia_boot_ldt; fdt addr \${fdt_addr_r}; fdt resize 1024; run omnia_fixup_sfp; run omnia_fixup_mac0; run omnia_fixup_mac1; run omnia_fixup_mac2; run omnia_boot_lrd; run omnia_boot_brd'
 run omnia_boot
 EOF
 else
 cat >>/boot/boot.txt <<EOF
 setenv omnia_boot_b 'bootz \${kernel_addr_r} - \${fdt_addr_r};'
-setenv omnia_boot 'run omnia_boot_prep; run omnia_boot_lk; if gpio input gpio@71_4; then echo SFP; run omnia_boot_ldt_sfp; else echo PHY; run omnia_boot_ldt_phy; fi; fdt addr \${fdt_addr_r}; run omnia_fixup_mac0; run omnia_fixup_mac1; run omnia_fixup_mac2; run omnia_boot_b;'
+setenv omnia_boot 'run omnia_boot_prep; run omnia_boot_lk; run omnia_boot_ldt; fdt addr \${fdt_addr_r}; fdt resize 1024; run omnia_fixup_sfp; run omnia_fixup_mac0; run omnia_fixup_mac1; run omnia_fixup_mac2; run omnia_boot_b;'
 run omnia_boot
 EOF
 fi
